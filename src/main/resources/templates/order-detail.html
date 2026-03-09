@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="'Chi tiết đơn hàng #' + ${order.id} + ' - WebBanDoAn'">Chi tiết đơn hàng - WebBanDoAn</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/cart.css}"/>
+</head>
+<body>
+<div th:replace="~{layout/header :: header}"></div>
+
+<main class="main-content">
+    <div class="container">
+        <div class="breadcrumb">
+            <a th:href="@{/}">Trang chủ</a>
+            <span class="sep">/</span>
+            <a th:href="@{/orders}">Lịch sử đơn hàng</a>
+            <span class="sep">/</span>
+            <span th:text="'Đơn hàng #' + ${order.id}">Đơn hàng</span>
+        </div>
+
+        <div th:if="${order != null}" class="order-detail-box">
+            <div class="order-detail-header">
+                <h1 class="order-detail-title">Đơn hàng #<span th:text="${order.id}">1</span></h1>
+                <span class="status-badge" th:classappend="${order.status == 'PENDING' ? 'status-pending' : (order.status == 'CONFIRMED' ? 'status-confirmed' : (order.status == 'DELIVERING' ? 'status-delivering' : (order.status == 'COMPLETED' ? 'status-completed' : 'status-cancelled')))}"
+                      th:text="${order.status == 'PENDING' ? 'Chờ xác nhận' : (order.status == 'CONFIRMED' ? 'Đã xác nhận' : (order.status == 'DELIVERING' ? 'Đang giao' : (order.status == 'COMPLETED' ? 'Hoàn thành' : 'Đã hủy')))}">
+                    Chờ xác nhận
+                </span>
+            </div>
+
+            <div class="order-detail-info">
+                <div class="order-info-section">
+                    <h3>Thông tin đơn hàng</h3>
+                    <p><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span></p>
+                    <p><strong>Địa chỉ giao hàng:</strong> <span th:text="${order.shippingAddress}">Địa chỉ</span></p>
+                    <p><strong>Số điện thoại:</strong> <span th:text="${order.phone}">SĐT</span></p>
+                    <p th:if="${order.note != null and !order.note.isEmpty()}">
+                        <strong>Ghi chú:</strong> <span th:text="${order.note}">Ghi chú</span>
+                    </p>
+                </div>
+
+                <div class="order-items-section">
+                    <h3>Chi tiết món ăn</h3>
+                    <table class="order-detail-table">
+                        <thead>
+                            <tr>
+                                <th>Món ăn</th>
+                                <th>Đơn giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="detail : ${order.orderDetails}">
+                                <td th:text="${detail.food.name}">Tên món</td>
+                                <td th:text="${#numbers.formatDecimal(detail.unitPrice, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                                <td th:text="${detail.quantity}">1</td>
+                                <td th:text="${#numbers.formatDecimal(detail.subtotal, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="order-total-label"><strong>Tổng cộng:</strong></td>
+                                <td class="order-total-amount" th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="order-detail-actions">
+                <a th:href="@{/orders}" class="btn btn-secondary">Quay lại lịch sử</a>
+                <a th:href="@{/foods}" class="btn btn-primary">Tiếp tục mua sắm</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

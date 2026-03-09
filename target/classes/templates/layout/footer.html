@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Footer</title></head>
+<body>
+<!-- Fragment: footer dùng chung + script chung -->
+<footer class="site-footer" th:fragment="footer">
+    <div class="container">
+        <p class="footer-text">© 2025 WebBanDoAn - Đặt đồ ăn online. Đồ án Spring Boot.</p>
+        <p class="footer-links">
+            <a th:href="@{/}">Trang chủ</a> |
+            <a th:href="@{/foods}">Danh sách món</a>
+        </p>
+    </div>
+</footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

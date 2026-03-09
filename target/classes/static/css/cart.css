@@ -1,0 +1,471 @@
+/* =====================================================
+   cart.css - CSS cho trang giỏ hàng (cart.html)
+   ===================================================== */
+
+.page-title {
+    margin-bottom: 24px;
+}
+
+.cart-message {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+}
+
+.cart-message.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.cart-content {
+    background: var(--white);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cart-table th,
+.cart-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.cart-table th {
+    background: var(--bg);
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.cart-item-name a {
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.cart-item-name a:hover {
+    color: var(--primary);
+}
+
+.cart-item-price,
+.cart-item-subtotal {
+    white-space: nowrap;
+}
+
+.cart-update-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-input {
+    width: 70px;
+    padding: 8px 10px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    text-align: center;
+}
+
+.qty-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    color: var(--white);
+    text-decoration: none;
+}
+
+.cart-summary {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.cart-total {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.total-amount {
+    color: var(--primary);
+    font-size: 1.4rem;
+}
+
+.cart-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.cart-empty {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.cart-empty p {
+    margin: 0 0 20px 0;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .cart-table {
+        font-size: 0.9rem;
+    }
+
+    .cart-table th,
+    .cart-table td {
+        padding: 10px 8px;
+    }
+
+    .cart-update-form {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cart-summary {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* =====================================================
+   Checkout & Order success (Bước 8)
+   ===================================================== */
+
+.checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+    margin-bottom: 24px;
+}
+
+.checkout-form-section,
+.checkout-summary {
+    background: var(--white);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.checkout-form-section h2,
+.checkout-summary h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+    color: var(--secondary);
+}
+
+.checkout-items {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.checkout-item-name {
+    color: var(--text);
+}
+
+.checkout-item-qty {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.checkout-total {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.checkout-total span {
+    color: var(--primary);
+}
+
+.checkout-back {
+    margin: 0;
+}
+
+.order-success-box {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.order-success-title {
+    margin: 0 0 16px 0;
+    font-size: 1.8rem;
+    color: var(--secondary);
+}
+
+.order-success-message {
+    margin: 0 0 24px 0;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.order-success-id,
+.order-success-total {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+}
+
+.order-success-actions {
+    margin-top: 28px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* =====================================================
+   Order History & Detail (Bước 9)
+   ===================================================== */
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.order-card-info {
+    flex: 1;
+}
+
+.order-card-id {
+    margin: 0 0 6px 0;
+    font-size: 1.2rem;
+    color: var(--secondary);
+}
+
+.order-card-date {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-confirmed {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-delivering {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.order-card-body {
+    margin-bottom: 16px;
+}
+
+.order-card-total {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+}
+
+.order-card-total span {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.order-card-address,
+.order-card-phone {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.order-card-footer {
+    display: flex;
+    gap: 12px;
+}
+
+.order-empty {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.order-empty p {
+    margin: 0 0 20px 0;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.order-detail-box {
+    background: var(--white);
+    padding: 32px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.order-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.order-detail-title {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--secondary);
+}
+
+.order-detail-info {
+    margin-bottom: 24px;
+}
+
+.order-info-section,
+.order-items-section {
+    margin-bottom: 28px;
+}
+
+.order-info-section h3,
+.order-items-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.2rem;
+    color: var(--secondary);
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+}
+
+.order-info-section p {
+    margin: 8px 0;
+    color: var(--text);
+}
+
+.order-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-detail-table th,
+.order-detail-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.order-detail-table th {
+    background: var(--bg);
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.order-total-label {
+    text-align: right;
+    font-size: 1.1rem;
+}
+
+.order-total-amount {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.order-detail-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .checkout-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .order-card-header {
+        flex-direction: column;
+    }
+
+    .order-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .order-detail-table {
+        font-size: 0.9rem;
+    }
+
+    .order-detail-table th,
+    .order-detail-table td {
+        padding: 8px 6px;
+    }
+}

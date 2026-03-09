@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Admin Header</title></head>
+<body>
+<!-- Fragment: header riêng cho admin -->
+<header class="admin-header" th:fragment="admin-header">
+    <div class="container admin-header-inner">
+        <a th:href="@{/admin}" class="admin-logo">Admin Panel</a>
+        <nav class="admin-nav">
+            <a th:href="@{/admin}">Dashboard</a>
+            <a th:href="@{/admin/foods}">Quản lý món</a>
+            <a th:href="@{/admin/orders}">Quản lý đơn hàng</a>
+            <a th:href="@{/}">Về trang chủ</a>
+            <form th:action="@{/logout}" method="post" class="admin-logout-form"
+                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}">
+                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                <button type="submit" class="admin-logout-btn">Đăng xuất</button>
+            </form>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

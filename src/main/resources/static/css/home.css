@@ -1,0 +1,153 @@
+/* =====================================================
+   home.css - CSS riêng cho trang chủ (home.html)
+   Hero, danh mục, món nổi bật
+   ===================================================== */
+
+.hero {
+    text-align: center;
+    padding: 40px 20px 48px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    border-radius: var(--radius);
+    margin-bottom: 40px;
+}
+
+.hero h1 {
+    margin: 0 0 12px 0;
+    font-size: 2rem;
+}
+
+.hero p {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.95;
+}
+
+/* --- Danh mục --- */
+.categories-section {
+    margin-bottom: 48px;
+}
+
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.category-card {
+    display: inline-block;
+    padding: 14px 24px;
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-weight: 600;
+    color: var(--secondary);
+    box-shadow: var(--shadow);
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.category-card:hover {
+    border-color: var(--primary);
+    background: rgba(196, 92, 38, 0.06);
+    text-decoration: none;
+    color: var(--primary);
+}
+
+/* --- Món nổi bật --- */
+.featured-section {
+    margin-bottom: 32px;
+}
+
+.food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.food-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s;
+}
+
+.food-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.food-card-link {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+}
+
+.food-card-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.food-card-image {
+    aspect-ratio: 4/3;
+    background: #eee;
+    overflow: hidden;
+}
+
+.food-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.food-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+}
+
+.food-card-body {
+    padding: 16px;
+    flex: 1;
+}
+
+.food-card-title {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: var(--secondary);
+}
+
+.food-card-desc {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.food-card-price {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.food-card .btn-add-cart {
+    margin: 0 16px 16px 16px;
+}
+
+.section-more {
+    text-align: center;
+    margin: 0;
+}
+
+.section-more .btn-primary {
+    padding: 12px 28px;
+}

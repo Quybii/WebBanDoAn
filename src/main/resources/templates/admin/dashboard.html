@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin Dashboard - WebBanDoAn</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body>
+<div th:replace="~{layout/admin-header :: admin-header}"></div>
+
+<main class="admin-main">
+    <div class="container">
+        <h1 class="admin-page-title">Dashboard</h1>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3>Tổng số món</h3>
+                <p class="stat-value" th:text="${totalFoods}">0</p>
+                <a th:href="@{/admin/foods}" class="stat-link">Xem tất cả</a>
+            </div>
+            <div class="stat-card">
+                <h3>Tổng số đơn hàng</h3>
+                <p class="stat-value" th:text="${totalOrders}">0</p>
+                <a th:href="@{/admin/orders}" class="stat-link">Xem tất cả</a>
+            </div>
+            <div class="stat-card">
+                <h3>Đơn chờ xử lý</h3>
+                <p class="stat-value" th:text="${pendingOrders}">0</p>
+                <a th:href="@{/admin/orders}" class="stat-link">Xem đơn hàng</a>
+            </div>
+        </div>
+
+        <div class="admin-actions">
+            <a th:href="@{/admin/foods/new}" class="btn btn-primary">Thêm món mới</a>
+            <a th:href="@{/admin/foods}" class="btn btn-secondary">Quản lý món</a>
+            <a th:href="@{/admin/orders}" class="btn btn-secondary">Quản lý đơn hàng</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${food.name + ' - WebBanDoAn'}">Chi tiết món - WebBanDoAn</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/food.css}"/>
+</head>
+<body>
+<div th:replace="~{layout/header :: header}"></div>
+
+<main class="main-content">
+    <div class="container">
+        <div class="breadcrumb">
+            <a th:href="@{/}">Trang chủ</a>
+            <span class="sep">/</span>
+            <a th:href="@{/foods}">Danh sách món</a>
+            <span class="sep">/</span>
+            <span th:text="${food.name}">Tên món</span>
+        </div>
+
+        <div class="food-detail" th:if="${food != null}">
+            <div class="food-detail-image">
+                <img th:if="${food.imageUrl != null and !food.imageUrl.isEmpty()}"
+                     th:src="${food.imageUrl}" th:alt="${food.name}"/>
+                <div th:if="${food.imageUrl == null or food.imageUrl.isEmpty()}" class="food-detail-placeholder">
+                    <span>🍽</span>
+                </div>
+            </div>
+            <div class="food-detail-info">
+                <h1 class="food-detail-title" th:text="${food.name}">Tên món</h1>
+                <p class="food-detail-category" th:text="'Danh mục: ' + ${food.category.name}">Danh mục</p>
+                <p class="food-detail-price" th:text="${#numbers.formatDecimal(food.price, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</p>
+                <div class="food-detail-desc" th:if="${food.description != null and !food.description.isEmpty()}">
+                    <h3>Mô tả</h3>
+                    <p th:text="${food.description}">Mô tả chi tiết món ăn.</p>
+                </div>
+                <p th:if="${food.description == null or food.description.isEmpty()}" class="food-detail-no-desc">Chưa có mô tả.</p>
+
+                <!-- Nút thêm vào giỏ (Bước 7 sẽ xử lý /cart/add) -->
+                <div class="food-detail-actions">
+                    <a th:href="@{/cart/add/{id}(id=${food.id})}" class="btn btn-primary btn-add-cart-large">Thêm vào giỏ</a>
+                    <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua sắm</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

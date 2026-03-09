@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="'Chi tiết đơn hàng #' + ${order.id} + ' - Admin'">Chi tiết đơn - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+    <link rel="stylesheet" th:href="@{/css/cart.css}"/>
+</head>
+<body>
+<div th:replace="~{layout/admin-header :: admin-header}"></div>
+
+<main class="admin-main">
+    <div class="container">
+        <h1 class="admin-page-title">Chi tiết đơn hàng #<span th:text="${order.id}">1</span></h1>
+
+        <p th:if="${successMessage}" class="admin-message success" th:text="${successMessage}">Thành công.</p>
+        <p th:if="${errorMessage}" class="admin-message error" th:text="${errorMessage}">Lỗi.</p>
+
+        <div th:if="${order != null}" class="order-detail-box">
+            <div class="order-detail-header">
+                <div>
+                    <p><strong>Khách hàng:</strong> <span th:text="${order.user.username}">user1</span></p>
+                    <p><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span></p>
+                    <p><strong>Địa chỉ giao hàng:</strong> <span th:text="${order.shippingAddress}">Địa chỉ</span></p>
+                    <p><strong>Số điện thoại:</strong> <span th:text="${order.phone}">SĐT</span></p>
+                    <p th:if="${order.note != null and !order.note.isEmpty()}">
+                        <strong>Ghi chú:</strong> <span th:text="${order.note}">Ghi chú</span>
+                    </p>
+                </div>
+                <div class="order-status-section">
+                    <h3>Trạng thái đơn hàng</h3>
+                    <span class="status-badge"
+                          th:classappend="${order.status == 'PENDING' ? 'status-pending' : (order.status == 'CONFIRMED' ? 'status-confirmed' : (order.status == 'DELIVERING' ? 'status-delivering' : (order.status == 'COMPLETED' ? 'status-completed' : 'status-cancelled')))}"
+                          th:text="${order.status == 'PENDING' ? 'Chờ xác nhận' : (order.status == 'CONFIRMED' ? 'Đã xác nhận' : (order.status == 'DELIVERING' ? 'Đang giao' : (order.status == 'COMPLETED' ? 'Hoàn thành' : 'Đã hủy')))}">
+                        Chờ xác nhận
+                    </span>
+                    <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" class="status-form"
+                          th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}">
+                        <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                        <select name="status" class="status-select">
+                            <option value="PENDING" th:selected="${order.status == 'PENDING'}">Chờ xác nhận</option>
+                            <option value="CONFIRMED" th:selected="${order.status == 'CONFIRMED'}">Đã xác nhận</option>
+                            <option value="DELIVERING" th:selected="${order.status == 'DELIVERING'}">Đang giao</option>
+                            <option value="COMPLETED" th:selected="${order.status == 'COMPLETED'}">Hoàn thành</option>
+                            <option value="CANCELLED" th:selected="${order.status == 'CANCELLED'}">Đã hủy</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Cập nhật trạng thái</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="order-items-section">
+                <h3>Chi tiết món ăn</h3>
+                <table class="order-detail-table">
+                    <thead>
+                        <tr>
+                            <th>Món ăn</th>
+                            <th>Đơn giá</th>
+                            <th>Số lượng</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="detail : ${order.orderDetails}">
+                            <td th:text="${detail.food.name}">Tên món</td>
+                            <td th:text="${#numbers.formatDecimal(detail.unitPrice, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                            <td th:text="${detail.quantity}">1</td>
+                            <td th:text="${#numbers.formatDecimal(detail.subtotal, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="order-total-label"><strong>Tổng cộng:</strong></td>
+                            <td class="order-total-amount" th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="order-detail-actions">
+                <a th:href="@{/admin/orders}" class="btn btn-secondary">Quay lại danh sách</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

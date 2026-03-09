@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Giỏ hàng - WebBanDoAn</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/cart.css}"/>
+</head>
+<body>
+<div th:replace="~{layout/header :: header}"></div>
+
+<main class="main-content">
+    <div class="container">
+        <h1 class="page-title">Giỏ hàng</h1>
+
+        <p th:if="${successMessage}" class="cart-message success" th:text="${successMessage}">Đã cập nhật.</p>
+
+        <div th:if="${cartItems != null and !cartItems.isEmpty()}" class="cart-content">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Món ăn</th>
+                        <th>Đơn giá</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${cartItems}">
+                        <td class="cart-item-name">
+                            <a th:href="@{/foods/{id}(id=${item.food.id})}" th:text="${item.food.name}">Tên món</a>
+                        </td>
+                        <td class="cart-item-price" th:text="${#numbers.formatDecimal(item.food.price, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                        <td class="cart-item-qty">
+                            <form th:action="@{/cart/update}" method="post" class="cart-update-form"
+                                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}">
+                                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                                <input type="hidden" name="cartItemId" th:value="${item.id}"/>
+                                <input type="number" name="quantity" th:value="${item.quantity}" min="1" max="99" class="qty-input"/>
+                                <button type="submit" class="btn btn-small">Cập nhật</button>
+                            </form>
+                        </td>
+                        <td class="cart-item-subtotal" th:text="${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 0, 'POINT') + ' ₫'}">70.000 ₫</td>
+                        <td class="cart-item-remove">
+                            <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" class="cart-remove-form"
+                                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa món này khỏi giỏ?');">
+                                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                                <button type="submit" class="btn btn-small btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="cart-summary">
+                <p class="cart-total">
+                    <strong>Tổng cộng:</strong>
+                    <span class="total-amount" th:text="${#numbers.formatDecimal(totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span>
+                </p>
+                <div class="cart-actions">
+                    <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua</a>
+                    <a th:href="@{/checkout}" class="btn btn-primary">Đặt hàng</a>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${cartItems == null or cartItems.isEmpty()}" class="cart-empty">
+            <p>Giỏ hàng trống.</p>
+            <a th:href="@{/foods}" class="btn btn-primary">Xem danh sách món</a>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>

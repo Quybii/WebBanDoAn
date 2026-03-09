@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản lý món ăn - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body>
+<div th:replace="~{layout/admin-header :: admin-header}"></div>
+
+<main class="admin-main">
+    <div class="container">
+        <div class="admin-page-header">
+            <h1 class="admin-page-title">Quản lý món ăn</h1>
+            <a th:href="@{/admin/foods/new}" class="btn btn-primary">Thêm món mới</a>
+        </div>
+
+        <p th:if="${successMessage}" class="admin-message success" th:text="${successMessage}">Thành công.</p>
+        <p th:if="${errorMessage}" class="admin-message error" th:text="${errorMessage}">Lỗi.</p>
+
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên món</th>
+                        <th>Danh mục</th>
+                        <th>Giá</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="food : ${foods}">
+                        <td th:text="${food.id}">1</td>
+                        <td th:text="${food.name}">Tên món</td>
+                        <td th:text="${food.category.name}">Danh mục</td>
+                        <td th:text="${#numbers.formatDecimal(food.price, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                        <td>
+                            <span th:if="${food.isAvailable}" class="status-badge status-completed">Đang bán</span>
+                            <span th:if="${!food.isAvailable}" class="status-badge status-cancelled">Ngừng bán</span>
+                        </td>
+                        <td class="admin-actions-cell">
+                            <a th:href="@{/admin/foods/{id}/edit(id=${food.id})}" class="btn btn-small">Sửa</a>
+                            <form th:action="@{/admin/foods/{id}/delete(id=${food.id})}" method="post" class="admin-inline-form"
+                                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa món này?');">
+                                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                                <button type="submit" class="btn btn-small btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/footer :: footer}"></div>
+</body>
+</html>
