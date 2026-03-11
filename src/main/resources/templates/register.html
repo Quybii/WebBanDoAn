@@ -17,9 +17,11 @@
 
             <p th:if="${errorMessage}" class="auth-error" th:text="${errorMessage}">Lỗi đăng ký.</p>
 
-            <form th:action="@{/register}" method="post" class="auth-form"
-                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}">
-                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+           <form th:action="@{/register}" method="post" class="auth-form">
+
+            <input type="hidden"
+                th:name="${_csrf.parameterName}"
+                th:value="${_csrf.token}"/>
                 <div class="form-group">
                     <label for="username">Tên đăng nhập <span class="required">*</span></label>
                     <input type="text" id="username" name="username" required
@@ -60,6 +62,6 @@
     </div>
 </main>
 
-<div th:replace="~{layout/footer :: footer}"></div>
+<!-- <div th:replace="~{layout/footer :: footer}"></div> -->
 </body>
 </html>

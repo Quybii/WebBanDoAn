@@ -8,12 +8,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * Cấu hình Spring Security.
- * - Form login (trang /login), logout (/logout).
- * - Mã hóa mật khẩu BCrypt.
- * - Phân quyền: công khai (trang chủ, danh sách món, đăng ký/đăng nhập); USER (giỏ hàng, đơn hàng); ADMIN (/admin/**).
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -23,28 +17,35 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+   @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/foods", "/foods/**").permitAll()
-                .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/register", "/login").permitAll()
-                .requestMatchers("/cart/**", "/orders/**").authenticated()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers(
+                        "/",
+                        "/login",
+                        "/register",
+                        "/css/**",
+                        "/js/**",
+                        "/images/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
+
             .formLogin(form -> form
                 .loginPage("/login")
+                .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/", true)
-                .failureUrl("/login?error=true")
                 .permitAll()
             )
+
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/login?logout")
                 .permitAll()
             );
+
         return http.build();
     }
 }

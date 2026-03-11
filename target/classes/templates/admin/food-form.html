@@ -18,10 +18,9 @@
         <p th:if="${errorMessage}" class="admin-message error" th:text="${errorMessage}">Lỗi.</p>
 
         <div class="admin-form-container">
-            <form th:action="@{/admin/foods}" method="post" class="auth-form"
-                  th:object="${food}"
-                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}">
-                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                        <form th:action="@{/admin/foods}" method="post" class="auth-form"
+                                    th:object="${food}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <input type="hidden" th:field="*{id}"/>
 
                 <div class="form-group">

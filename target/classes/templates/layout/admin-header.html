@@ -11,9 +11,8 @@
             <a th:href="@{/admin/foods}">Quản lý món</a>
             <a th:href="@{/admin/orders}">Quản lý đơn hàng</a>
             <a th:href="@{/}">Về trang chủ</a>
-            <form th:action="@{/logout}" method="post" class="admin-logout-form"
-                  th:with="csrfToken=${#request.getAttribute('org.springframework.security.web.csrf.CsrfToken')}">
-                <input type="hidden" th:name="${csrfToken.parameterName}" th:value="${csrfToken.token}"/>
+                        <form th:action="@{/logout}" method="post" class="admin-logout-form">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <button type="submit" class="admin-logout-btn">Đăng xuất</button>
             </form>
         </nav>
