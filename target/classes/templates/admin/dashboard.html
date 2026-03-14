@@ -37,6 +37,13 @@
             <a th:href="@{/admin/foods}" class="btn btn-secondary">Quản lý món</a>
             <a th:href="@{/admin/orders}" class="btn btn-secondary">Quản lý đơn hàng</a>
         </div>
+        <div class="admin-actions" style="margin-top:18px;">
+            <form th:action="@{/admin/shop/toggle}" method="post" style="display:inline-block;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="open" th:value="${!shopOpen}"/>
+                <button type="submit" class="btn" th:classappend="${shopOpen} ? ' btn-secondary' : ' btn-primary'" th:text="${shopOpen} ? 'Đóng cửa (Tạm dừng nhận đơn)' : 'Mở cửa (Nhận đơn)'"></button>
+            </form>
+        </div>
     </div>
 </main>
 

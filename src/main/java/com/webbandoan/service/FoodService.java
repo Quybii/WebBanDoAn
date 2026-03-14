@@ -31,6 +31,22 @@ public class FoodService {
         return foodRepository.findTop8ByIsAvailableTrueOrderByIdDesc();
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<Food> findSimilar(Long categoryId, Long excludeId, int limit) {
+        return foodRepository.findTop6ByCategoryIdAndIsAvailableTrueAndIdNotOrderByIdDesc(categoryId, excludeId);
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<Food> findHot(int limit) {
+        return foodRepository.findTopByPopularity(org.springframework.data.domain.PageRequest.of(0, limit));
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<Food> findOnSale(int limit) {
+        // No discount field in model; reuse featured as 'on sale' placeholder
+        return findFeatured();
+    }
+
     /**
      * Phân trang: tất cả món đang bán.
      */

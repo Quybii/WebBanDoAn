@@ -35,4 +35,11 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
      * Tìm theo tên (chứa keyword), món đang bán, có phân trang.
      */
     Page<Food> findByNameContainingIgnoreCaseAndIsAvailableTrue(String keyword, Pageable pageable);
+
+    // Similar items: same category, exclude current id, limit by id desc
+    List<Food> findTop6ByCategoryIdAndIsAvailableTrueAndIdNotOrderByIdDesc(Long categoryId, Long idNot);
+
+    // Hot items: order by number of orderDetails (most ordered). Use JPQL subquery to count.
+    @org.springframework.data.jpa.repository.Query("SELECT f FROM Food f WHERE f.isAvailable = true ORDER BY (SELECT COUNT(od) FROM com.webbandoan.entity.OrderDetail od WHERE od.food = f) DESC")
+    List<Food> findTopByPopularity(org.springframework.data.domain.Pageable pageable);
 }

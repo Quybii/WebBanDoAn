@@ -30,10 +30,12 @@ public class CartController {
 
     private final CartService cartService;
     private final UserRepository userRepository;
+    private final com.webbandoan.service.ShopService shopService;
 
-    public CartController(CartService cartService, UserRepository userRepository) {
+    public CartController(CartService cartService, UserRepository userRepository, com.webbandoan.service.ShopService shopService) {
         this.cartService = cartService;
         this.userRepository = userRepository;
+        this.shopService = shopService;
     }
 
     private User getCurrentUser() {
@@ -62,12 +64,33 @@ public class CartController {
         User user = getCurrentUser();
         if (user == null) return "redirect:/login";
 
+        if (!shopService.isOpen()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Hiện tại cửa hàng đóng cửa, không nhận đơn.");
+            return "redirect:/foods/" + foodId;
+        }
         cartService.addItem(user, foodId, quantity);
         redirectAttributes.addFlashAttribute("successMessage", "Đã thêm món vào giỏ.");
         if ("cart".equals(redirectTo)) {
             return "redirect:/cart";
         }
         return "redirect:/foods/" + foodId;
+    }
+
+    @PostMapping("/add")
+    public org.springframework.http.ResponseEntity<?> addToCartAjax(
+            @RequestParam Long foodId,
+            @RequestParam(defaultValue = "1") int quantity) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return org.springframework.http.ResponseEntity.status(401).body(java.util.Map.of("success", false, "message", "Vui lòng đăng nhập"));
+        }
+        if (!shopService.isOpen()) {
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", false, "message", "Hiện tại cửa hàng đóng cửa, không nhận đơn."));
+        }
+
+        cartService.addItem(user, foodId, quantity);
+        int count = cartService.getCartItems(user).size();
+        return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "cartCount", count, "message", "Đã thêm vào giỏ."));
     }
 
     @PostMapping("/update")

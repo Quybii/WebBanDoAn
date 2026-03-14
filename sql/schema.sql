@@ -150,4 +150,18 @@ INSERT INTO foods (name, description, price, category_id, is_available) VALUES
     (N'Cà phê đen đá', N'Cà phê đen đá nguyên chất', 15000, 3, 1),
     (N'Chè ba màu', N'Chè đậu đỏ, đậu xanh, thạch', 20000, 4, 1);
 
+-- -----------------------------------------------------
+-- 8. BẢNG food_images (Ảnh cho món ăn) - thêm để hỗ trợ nhiều ảnh
+-- Quan hệ: Many food_images -> One food (ManyToOne với foods)
+-- -----------------------------------------------------
+CREATE TABLE food_images (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    food_id BIGINT NOT NULL,
+    image_url NVARCHAR(1000) NOT NULL,
+    is_main BIT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_food_images_food FOREIGN KEY (food_id) REFERENCES foods(id)
+);
+
+CREATE INDEX idx_food_images_food_id ON food_images(food_id);
+
 PRINT N'Đã tạo xong các bảng và dữ liệu mẫu.';

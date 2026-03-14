@@ -25,9 +25,14 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String loginPage(@RequestParam(value = "error", required = false) Boolean error, Model model) {
-        if (Boolean.TRUE.equals(error)) {
+    public String loginPage(@RequestParam(value = "error", required = false) String error,
+                            @RequestParam(value = "logout", required = false) String logout,
+                            Model model) {
+        if (error != null) {
             model.addAttribute("errorMessage", "Sai tên đăng nhập hoặc mật khẩu.");
+        }
+        if (logout != null) {
+            model.addAttribute("successMessage", "Bạn đã đăng xuất thành công.");
         }
         return "login";
     }

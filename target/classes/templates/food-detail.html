@@ -40,8 +40,56 @@
 
                 <!-- Nút thêm vào giỏ (Bước 7 sẽ xử lý /cart/add) -->
                 <div class="food-detail-actions">
-                    <a th:href="@{/cart/add/{id}(id=${food.id})}" class="btn btn-primary btn-add-cart-large">Thêm vào giỏ</a>
+                    <button type="button" class="btn btn-primary btn-add-cart-large btn-add-cart-ajax" th:attr="data-food-id=${food.id}">Thêm vào giỏ</button>
                     <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua sắm</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Similar items carousel -->
+        <section class="section-title">Món tương tự</section>
+        <div class="carousel-row" th:if="${similarFoods != null and !similarFoods.isEmpty()}">
+            <div class="carousel-track">
+                <div class="card" th:each="s : ${similarFoods}">
+                    <a th:href="@{/foods/{id}(id=${s.id})}">
+                        <img th:if="${s.imageUrl != null}" th:src="${s.imageUrl}" th:alt="${s.name}" />
+                        <div class="card-body">
+                            <h4 th:text="${s.name}">Tên</h4>
+                            <p class="price" th:text="${#numbers.formatDecimal(s.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hot items -->
+        <section class="section-title">Món Hot</section>
+        <div class="carousel-row" th:if="${hotFoods != null and !hotFoods.isEmpty()}">
+            <div class="carousel-track">
+                <div class="card" th:each="h : ${hotFoods}">
+                    <a th:href="@{/foods/{id}(id=${h.id})}">
+                        <img th:if="${h.imageUrl != null}" th:src="${h.imageUrl}" th:alt="${h.name}" />
+                        <div class="card-body">
+                            <h4 th:text="${h.name}">Tên</h4>
+                            <p class="price" th:text="${#numbers.formatDecimal(h.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deals / On Sale -->
+        <section class="section-title">Ưu đãi</section>
+        <div class="carousel-row" th:if="${dealFoods != null and !dealFoods.isEmpty()}">
+            <div class="carousel-track">
+                <div class="card" th:each="d : ${dealFoods}">
+                    <a th:href="@{/foods/{id}(id=${d.id})}">
+                        <img th:if="${d.imageUrl != null}" th:src="${d.imageUrl}" th:alt="${d.name}" />
+                        <div class="card-body">
+                            <h4 th:text="${d.name}">Tên</h4>
+                            <p class="price" th:text="${#numbers.formatDecimal(d.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>

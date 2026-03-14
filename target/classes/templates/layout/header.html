@@ -10,7 +10,15 @@
         <nav class="main-nav">
             <a th:href="@{/}">Trang chủ</a>
             <a th:href="@{/foods}">Danh sách món</a>
-            <a th:href="@{/cart}" class="nav-cart">Giỏ hàng</a>
+            <a th:href="@{/cart}" class="nav-cart">Giỏ hàng (<span id="header-cart-count" th:text="${cartCount}">0</span>)</a>
+            <div th:if="${isAdmin}" class="nav-admin">
+                <a th:href="@{/admin}" class="btn-admin">Admin</a>
+                <div class="admin-menu">
+                    <a th:href="@{/admin}">Dashboard</a>
+                    <a th:href="@{/admin/foods}">Quản lý món</a>
+                    <a th:href="@{/admin/orders}">Quản lý đơn</a>
+                </div>
+            </div>
             <span th:if="${isAuthenticated}" class="nav-user">
                 <span class="nav-username" th:text="'Xin chào, ' + ${currentUsername}">Xin chào</span>
                 <form th:action="@{/logout}" method="post">
@@ -24,6 +32,16 @@
             </span>
             <a th:if="${!isAuthenticated}" th:href="@{/login}">Đăng nhập</a>
         </nav>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            // Expose CSRF to JS
+            window._csrf = {
+                headerName: /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN',
+                token: /*[[${_csrf.token}]]*/ ''
+            };
+            /*]]>*/
+        </script>
+        <script th:src="@{/js/cart.js}"></script>
     </div>
 </header>
 </body>

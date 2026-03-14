@@ -83,6 +83,21 @@ public class FoodController {
             return "redirect:/foods";
         }
         model.addAttribute("food", food);
+        // add categories/menu similar to home
+        List<Category> categories = categoryService.findAll();
+        model.addAttribute("categories", categories);
+
+        // similar foods (same category)
+        List<Food> similar = foodService.findSimilar(food.getCategory().getId(), food.getId(), 6);
+        model.addAttribute("similarFoods", similar);
+
+        // hot items (most ordered)
+        List<Food> hot = foodService.findHot(6);
+        model.addAttribute("hotFoods", hot);
+
+        // on-sale / deals
+        List<Food> deals = foodService.findOnSale(6);
+        model.addAttribute("dealFoods", deals);
         return "food-detail";
     }
 }

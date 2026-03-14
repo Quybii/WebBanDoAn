@@ -2,6 +2,7 @@ package com.webbandoan.controller;
 
 import com.webbandoan.entity.Category;
 import com.webbandoan.entity.Food;
+import com.webbandoan.service.FoodImageService;
 import com.webbandoan.service.CategoryService;
 import com.webbandoan.service.FoodService;
 import org.springframework.stereotype.Controller;
@@ -32,10 +33,12 @@ public class AdminFoodController {
 
     private final FoodService foodService;
     private final CategoryService categoryService;
+    private final FoodImageService foodImageService;
 
-    public AdminFoodController(FoodService foodService, CategoryService categoryService) {
+    public AdminFoodController(FoodService foodService, CategoryService categoryService, FoodImageService foodImageService) {
         this.foodService = foodService;
         this.categoryService = categoryService;
+        this.foodImageService = foodImageService;
     }
 
     @GetMapping
@@ -61,14 +64,16 @@ public class AdminFoodController {
         }
         List<Category> categories = categoryService.findAll();
         model.addAttribute("food", food);
+        model.addAttribute("images", foodImageService.findByFood(food));
         model.addAttribute("categories", categories);
         return "admin/food-form";
     }
 
     @PostMapping
-    public String save(
+        public String save(
             @RequestParam(required = false) Long categoryId,
             @ModelAttribute Food food,
+            @RequestParam(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images,
             RedirectAttributes redirectAttributes) {
         if (food.getName() == null || food.getName().trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên món không được để trống.");
@@ -92,6 +97,10 @@ public class AdminFoodController {
             food.setIsAvailable(true);
         }
         foodService.save(food);
+        // store uploaded images if provided
+        if (images != null && images.length > 0) {
+            foodImageService.storeImages(food, images);
+        }
         redirectAttributes.addFlashAttribute("successMessage", food.getId() == null ? "Đã thêm món mới." : "Đã cập nhật món.");
         return "redirect:/admin/foods";
     }
@@ -100,6 +109,20 @@ public class AdminFoodController {
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         foodService.deleteById(id);
         redirectAttributes.addFlashAttribute("successMessage", "Đã xóa món.");
+        return "redirect:/admin/foods";
+    }
+
+    @PostMapping("/images/{imageId}/delete")
+    public String deleteImage(@PathVariable Long imageId, RedirectAttributes redirectAttributes) {
+        foodImageService.deleteImage(imageId);
+        redirectAttributes.addFlashAttribute("successMessage", "Đã xóa hình.");
+        return "redirect:/admin/foods";
+    }
+
+    @PostMapping("/images/{imageId}/set-main")
+    public String setMainImage(@PathVariable Long imageId, RedirectAttributes redirectAttributes) {
+        foodImageService.setMain(imageId);
+        redirectAttributes.addFlashAttribute("successMessage", "Đã đặt làm ảnh chính.");
         return "redirect:/admin/foods";
     }
 }
