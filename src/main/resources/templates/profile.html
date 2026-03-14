@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hồ sơ của tôi</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/auth.css}"/>
+    <style>
+        .map-card{ height:360px; border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+        .profile-grid{ display:grid; grid-template-columns: 1fr 360px; gap:20px; align-items:start }
+        @media (max-width:900px){ .profile-grid{ grid-template-columns:1fr } }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/header :: header}"></div>
+<main class="main-content">
+    <div class="container">
+        <h1>Hồ sơ của tôi</h1>
+        <div th:if="${param.success}" class="site-toast visible success">Cập nhật thành công</div>
+        <div class="profile-grid">
+            <div>
+                <form th:action="@{/profile}" method="post" id="profileForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="form-group">
+                        <label>Họ và tên</label>
+                        <input type="text" name="fullName" th:value="${user.fullName}" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" name="phone" th:value="${user.phone}" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ (chuỗi)</label>
+                        <input type="text" name="address" id="addressInput" th:value="${user.address}" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Nhãn địa điểm (ví dụ: Nhà / Cơ quan)</label>
+                        <input type="text" name="addressLabel" th:value="${user.addressLabel}" class="form-control" />
+                    </div>
+                    <input type="hidden" name="latitude" id="latInput" th:value="${user.latitude}" />
+                    <input type="hidden" name="longitude" id="lngInput" th:value="${user.longitude}" />
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Lưu hồ sơ</button>
+                    </div>
+                </form>
+            </div>
+            <div>
+                <div class="map-card" id="map"></div>
+                <p style="margin-top:8px;font-size:0.95rem;color:var(--text-muted)">Nhấn lên bản đồ để ghim vị trí giao hàng. Dữ liệu sẽ được lưu vào hồ sơ.</p>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{layout/footer :: footer}"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var initialLat = /*[[${user.latitude}]]*/ null;
+    var initialLng = /*[[${user.longitude}]]*/ null;
+    var initialAddress = /*[[${user.address}]]*/ '';
+    var googleApiKey = /*[[${@environment.getProperty('google.maps.apiKey')}]]*/ '';
+    /*]]>*/
+    // expose as window.* for profile-map.js
+    window.initialLat = initialLat;
+    window.initialLng = initialLng;
+    window.initialAddress = initialAddress;
+    window.googleApiKey = googleApiKey;
+</script>
+<script th:src="@{/js/profile-map.js}"></script>
+<script th:src="@{https://maps.googleapis.com/maps/api/js?(key=${@environment.getProperty('google.maps.apiKey')},libraries=places)}"></script>
+</body>
+</html>

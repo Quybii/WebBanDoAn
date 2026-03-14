@@ -165,3 +165,12 @@ CREATE TABLE food_images (
 CREATE INDEX idx_food_images_food_id ON food_images(food_id);
 
 PRINT N'Đã tạo xong các bảng và dữ liệu mẫu.';
+
+-- ALTER statements for adding profile location fields (apply to existing DB)
+-- Run these if your database already exists and you need to update schema
+IF COL_LENGTH('users', 'address_label') IS NULL
+    ALTER TABLE users ADD address_label NVARCHAR(255);
+IF COL_LENGTH('users', 'latitude') IS NULL
+    ALTER TABLE users ADD latitude FLOAT NULL;
+IF COL_LENGTH('users', 'longitude') IS NULL
+    ALTER TABLE users ADD longitude FLOAT NULL;
