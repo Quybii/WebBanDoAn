@@ -103,9 +103,10 @@ a:hover {
 /* Admin menu in header */
 .nav-admin{ position:relative; }
 .nav-admin .btn-admin{ color:rgba(255,255,255,0.95); font-weight:700; padding:6px 8px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.06); }
-.nav-admin .admin-menu{ display:none; position:absolute; right:0; top:36px; background:var(--white); color:var(--secondary); padding:8px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:160px; }
+.nav-admin .admin-menu{ position:absolute; right:0; top:44px; background:var(--white); color:var(--secondary); padding:8px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:160px;
+    opacity:0; visibility:hidden; transform:translateY(-6px); transition:opacity .18s ease, transform .18s ease; pointer-events:none; z-index:60; }
 .nav-admin .admin-menu a{ display:block; color:var(--secondary); padding:8px 10px; text-decoration:none; }
-.nav-admin:hover .admin-menu{ display:block; }
+.nav-admin:hover .admin-menu, .nav-admin .admin-menu.open{ opacity:1; visibility:visible; transform:none; pointer-events:auto; }
 
 /* --- User badge & menu --- */
 .nav-user{ position:relative }
@@ -113,11 +114,12 @@ a:hover {
 .user-badge{ display:inline-block; width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:0.95rem }
 .user-badge::after{ content: attr(data-initial); }
 .user-name{ font-weight:700; color:rgba(255,255,255,0.95); margin-right:6px }
-.user-menu{ display:none; position:absolute; right:0; top:52px; background:var(--white); color:var(--secondary); padding:8px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.12); min-width:180px; z-index:50 }
+.user-menu{ position:absolute; right:0; top:52px; background:var(--white); color:var(--secondary); padding:8px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.12); min-width:180px; z-index:50;
+    opacity:0; visibility:hidden; transform:translateY(-6px); transition:opacity .18s ease, transform .18s ease; pointer-events:none; }
 .user-menu a{ display:block; padding:8px 10px; color:var(--secondary); text-decoration:none; }
 .user-menu .logout-form{ margin:0; padding:8px 10px }
 .user-menu .logout-btn{ width:100%; background:transparent; border:none; text-align:left; padding:6px 0; color:var(--secondary); cursor:pointer }
-.nav-user:hover .user-menu{ display:block }
+.nav-user:hover .user-menu, .user-menu.open{ opacity:1; visibility:visible; transform:none; pointer-events:auto }
 
 .btn-login{ background:var(--white); color:var(--secondary); padding:6px 10px; border-radius:8px; }
 .btn-login:hover{ background:#fff; color:var(--secondary) }
