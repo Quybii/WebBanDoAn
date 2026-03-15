@@ -40,6 +40,17 @@ application-dev.yml
 # Uploads
 uploads/
 
+# History & Logs
+*.log
+*.log.*
+logs/
+history/
+.bash_history
+.zsh_history
+.histfile
+*.history
+.idea/history/
+
 # OS
 .DS_Store
 Thumbs.db
