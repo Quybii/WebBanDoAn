@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,26 +69,31 @@ public class FoodImageService {
 
     @Transactional
     public void deleteImage(Long imageId) {
-        foodImageRepository.findById(imageId).ifPresent(img -> {
-            // delete file from disk
-            String url = img.getImageUrl();
-            if (url != null && url.startsWith("/uploads/")) {
-                Path p = uploadRoot.resolve(url.replaceFirst("/uploads/", ""));
-                try { Files.deleteIfExists(p); } catch (IOException ignored) {}
-            }
-            foodImageRepository.delete(img);
-        });
+        if (imageId != null) {
+            foodImageRepository.findById(imageId).ifPresent(img -> {
+                String url = img.getImageUrl();
+                if (url != null && url.startsWith("/uploads/")) {
+                    Path p = uploadRoot.resolve(url.replaceFirst("/uploads/", ""));
+                    try { Files.deleteIfExists(p); } catch (IOException ignored) {}
+                }
+                foodImageRepository.delete(img);
+            });
+        }
     }
 
     @Transactional
     public void setMain(Long imageId) {
-        foodImageRepository.findById(imageId).ifPresent(img -> {
-            Food food = img.getFood();
-            List<FoodImage> imgs = foodImageRepository.findByFoodOrderByIdAsc(food);
-            for (FoodImage f : imgs) {
-                f.setIsMain(f.getId().equals(imageId));
-            }
-            foodImageRepository.saveAll(imgs);
-        });
+        if (imageId != null) {
+            foodImageRepository.findById(imageId).ifPresent(img -> {
+                Food food = img.getFood();
+                List<FoodImage> imgs = foodImageRepository.findByFoodOrderByIdAsc(food);
+                if (imgs != null) {
+                    for (FoodImage f : imgs) {
+                        f.setIsMain(f.getId().equals(imageId));
+                    }
+                    foodImageRepository.saveAll(imgs);
+                }
+            });
+        }
     }
 }

@@ -76,6 +76,7 @@ public class FoodService {
      */
     @Transactional(readOnly = true)
     public Food findById(Long id) {
+        if (id == null) return null;
         return foodRepository.findById(id).orElse(null);
     }
 
@@ -92,6 +93,7 @@ public class FoodService {
      */
     @Transactional
     public Food save(Food food) {
+        if (food == null) return null;
         return foodRepository.save(food);
     }
 
@@ -100,6 +102,8 @@ public class FoodService {
      */
     @Transactional
     public void deleteById(Long id) {
-        foodRepository.deleteById(id);
+        if (id != null) {
+            foodRepository.deleteById(id);
+        }
     }
 }

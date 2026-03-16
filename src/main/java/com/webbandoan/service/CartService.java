@@ -5,6 +5,7 @@ import com.webbandoan.entity.Food;
 import com.webbandoan.entity.User;
 import com.webbandoan.repository.CartItemRepository;
 import com.webbandoan.repository.FoodRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,22 +17,19 @@ import java.util.List;
  * Thêm món, xóa món, cập nhật số lượng, lấy danh sách giỏ, tính tổng tiền.
  */
 @Service
+@RequiredArgsConstructor
 public class CartService {
 
     private final CartItemRepository cartItemRepository;
     private final FoodRepository foodRepository;
-
-    public CartService(CartItemRepository cartItemRepository, FoodRepository foodRepository) {
-        this.cartItemRepository = cartItemRepository;
-        this.foodRepository = foodRepository;
-    }
 
     /**
      * Thêm món vào giỏ (hoặc tăng số lượng nếu đã có).
      */
     @Transactional
     public void addItem(User user, Long foodId, int quantity) {
-        if (quantity <= 0) return;
+        if (quantity <= 0 || user == null || foodId == null) return;
+        
         Food food = foodRepository.findById(foodId).orElse(null);
         if (food == null || !food.getIsAvailable()) return;
 
@@ -50,8 +48,11 @@ public class CartService {
      */
     @Transactional
     public boolean removeItem(User user, Long cartItemId) {
+        if (cartItemId == null || user == null) return false;
+        
         CartItem item = cartItemRepository.findById(cartItemId).orElse(null);
         if (item == null || !item.getUser().getId().equals(user.getId())) return false;
+        
         cartItemRepository.delete(item);
         return true;
     }
@@ -61,8 +62,11 @@ public class CartService {
      */
     @Transactional
     public boolean updateQuantity(User user, Long cartItemId, int quantity) {
+        if (cartItemId == null || user == null) return false;
+        
         CartItem item = cartItemRepository.findById(cartItemId).orElse(null);
         if (item == null || !item.getUser().getId().equals(user.getId())) return false;
+        
         if (quantity <= 0) {
             cartItemRepository.delete(item);
             return true;
@@ -77,6 +81,7 @@ public class CartService {
      */
     @Transactional(readOnly = true)
     public List<CartItem> getCartItems(User user) {
+        if (user == null) return List.of();
         return cartItemRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
@@ -85,9 +90,11 @@ public class CartService {
      */
     @Transactional(readOnly = true)
     public BigDecimal getTotalAmount(User user) {
+        if (user == null) return BigDecimal.ZERO;
+        
         List<CartItem> items = cartItemRepository.findByUserOrderByCreatedAtDesc(user);
         return items.stream()
-                .map(item -> item.getFood().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .map(CartItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -96,6 +103,8 @@ public class CartService {
      */
     @Transactional
     public void clearCart(User user) {
-        cartItemRepository.deleteByUser(user);
+        if (user != null) {
+            cartItemRepository.deleteByUser(user);
+        }
     }
 }

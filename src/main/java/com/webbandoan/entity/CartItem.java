@@ -1,6 +1,10 @@
 package com.webbandoan.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -10,6 +14,9 @@ import java.time.LocalDateTime;
  * Quan hệ: ManyToOne với User, ManyToOne với Food
  * Ràng buộc: Mỗi user chỉ có tối đa 1 dòng cho mỗi món (unique user_id + food_id)
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "cart_items", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "food_id"})
@@ -39,55 +46,11 @@ public class CartItem {
         createdAt = LocalDateTime.now();
     }
 
-    // --- Constructors ---
-    public CartItem() {
-    }
-
+    /** Constructor cho Service layer (tạo CartItem không có id) */
     public CartItem(User user, Food food, Integer quantity) {
         this.user = user;
         this.food = food;
         this.quantity = quantity;
-    }
-
-    // --- Getters / Setters ---
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Food getFood() {
-        return food;
-    }
-
-    public void setFood(Food food) {
-        this.food = food;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
     /** Thành tiền = đơn giá * số lượng (dùng cho hiển thị). */

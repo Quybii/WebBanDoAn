@@ -33,6 +33,7 @@ public class CategoryService {
      */
     @Transactional(readOnly = true)
     public Category findById(Long id) {
+        if (id == null) return null;
         return categoryRepository.findById(id).orElse(null);
     }
 }

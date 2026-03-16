@@ -1,6 +1,10 @@
 package com.webbandoan.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
 /**
@@ -8,6 +12,9 @@ import java.math.BigDecimal;
  * Bảng: order_details
  * Quan hệ: ManyToOne với Order, ManyToOne với Food
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "order_details")
 public class OrderDetail {
@@ -33,70 +40,18 @@ public class OrderDetail {
     @Column(name = "subtotal", nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
 
-    // --- Constructors ---
-    public OrderDetail() {
-    }
-
     public OrderDetail(Order order, Food food, Integer quantity, BigDecimal unitPrice) {
         this.order = order;
         this.food = food;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
-        this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+        calculateSubtotal();
     }
 
-    // --- Getters / Setters ---
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Order getOrder() {
-        return order;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public Food getFood() {
-        return food;
-    }
-
-    public void setFood(Food food) {
-        this.food = food;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-        if (unitPrice != null) {
+    /** Tính toán subtotal dựa trên unitPrice và quantity (dùng cho Service) */
+    public void calculateSubtotal() {
+        if (unitPrice != null && quantity != null) {
             this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
         }
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-        if (quantity != null) {
-            this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        }
-    }
-
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
     }
 }

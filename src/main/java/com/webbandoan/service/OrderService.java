@@ -68,6 +68,8 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public Order findByIdAndUser(Long orderId, User user) {
+        if (orderId == null || user == null) return null;
+        
         Order order = orderRepository.findById(orderId).orElse(null);
         if (order == null || !order.getUser().getId().equals(user.getId())) {
             return null;
@@ -80,6 +82,7 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public List<Order> findByUser(User user) {
+        if (user == null) return List.of();
         return orderRepository.findByUserOrderByOrderDateDesc(user);
     }
 
@@ -96,6 +99,7 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public Order findById(Long orderId) {
+        if (orderId == null) return null;
         return orderRepository.findById(orderId).orElse(null);
     }
 
@@ -104,6 +108,8 @@ public class OrderService {
      */
     @Transactional
     public Order updateStatus(Long orderId, String status) {
+        if (orderId == null) return null;
+        
         Order order = orderRepository.findById(orderId).orElse(null);
         if (order == null) return null;
         order.setStatus(status);
