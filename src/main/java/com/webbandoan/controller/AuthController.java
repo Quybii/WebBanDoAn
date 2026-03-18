@@ -2,6 +2,7 @@ package com.webbandoan.controller;
 
 import com.webbandoan.entity.User;
 import com.webbandoan.service.UserService;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ public class AuthController {
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
+                            CsrfToken csrfToken,
                             Model model) {
         if (error != null) {
             model.addAttribute("errorMessage", "Sai tên đăng nhập hoặc mật khẩu.");
@@ -34,11 +36,18 @@ public class AuthController {
         if (logout != null) {
             model.addAttribute("successMessage", "Bạn đã đăng xuất thành công.");
         }
+        // Add CSRF token to model for template rendering
+        if (csrfToken != null) {
+            model.addAttribute("_csrf", csrfToken);
+        }
         return "login";
     }
 
     @GetMapping("/register")
-    public String registerPage() {
+    public String registerPage(CsrfToken csrfToken, Model model) {
+        if (csrfToken != null) {
+            model.addAttribute("_csrf", csrfToken);
+        }
         return "register";
     }
 

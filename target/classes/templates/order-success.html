@@ -12,11 +12,19 @@
 
 <main class="main-content">
     <div class="container">
+        <p th:if="${successMessage}" class="cart-message success" th:text="${successMessage}">Thành công.</p>
+        <p th:if="${errorMessage}" class="cart-message" style="background:#fff3cd;color:#856404;" th:text="${errorMessage}">Lỗi.</p>
         <div class="order-success-box" th:if="${order != null}">
             <h1 class="order-success-title">Đặt hàng thành công!</h1>
             <p class="order-success-message">Cảm ơn bạn đã đặt hàng. Chúng tôi sẽ liên hệ sớm để xác nhận và giao hàng.</p>
             <p class="order-success-id">
                 Mã đơn hàng: <strong th:text="${order.id}">1</strong>
+            </p>
+            <p class="order-success-id" th:if="${order.paymentMethod != null}">
+                Phương thức thanh toán: <strong th:text="${order.paymentMethod.name}">COD</strong>
+            </p>
+            <p class="order-success-id">
+                Trạng thái thanh toán: <strong th:text="${order.paymentStatus}">PENDING</strong>
             </p>
             <p class="order-success-total">
                 Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</strong>

@@ -7,6 +7,7 @@ import com.webbandoan.service.FoodService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +38,7 @@ public class FoodController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
+            CsrfToken csrfToken,
             Model model) {
 
         // Tạo Pageable: page (số trang, bắt đầu từ 0), size (số món mỗi trang)
@@ -68,6 +70,9 @@ public class FoodController {
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", foodPage.getTotalPages());
         model.addAttribute("totalElements", foodPage.getTotalElements());
+        if (csrfToken != null) {
+            model.addAttribute("_csrf", csrfToken);
+        }
 
         return "food-list";
     }
@@ -77,7 +82,7 @@ public class FoodController {
      * GET /foods/{id}
      */
     @GetMapping("/foods/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id, CsrfToken csrfToken, Model model) {
         Food food = foodService.findById(id);
         if (food == null) {
             return "redirect:/foods";
@@ -98,6 +103,9 @@ public class FoodController {
         // on-sale / deals
         List<Food> deals = foodService.findOnSale(6);
         model.addAttribute("dealFoods", deals);
+        if (csrfToken != null) {
+            model.addAttribute("_csrf", csrfToken);
+        }
         return "food-detail";
     }
 }

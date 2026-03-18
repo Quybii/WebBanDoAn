@@ -23,9 +23,6 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final FoodRepository foodRepository;
 
-    /**
-     * Thêm món vào giỏ (hoặc tăng số lượng nếu đã có).
-     */
     @Transactional
     public void addItem(User user, Long foodId, int quantity) {
         if (quantity <= 0 || user == null || foodId == null) return;
@@ -43,9 +40,6 @@ public class CartService {
         }
     }
 
-    /**
-     * Xóa một dòng khỏi giỏ (chỉ khi thuộc user hiện tại).
-     */
     @Transactional
     public boolean removeItem(User user, Long cartItemId) {
         if (cartItemId == null || user == null) return false;
@@ -57,9 +51,7 @@ public class CartService {
         return true;
     }
 
-    /**
-     * Cập nhật số lượng. Nếu quantity <= 0 thì xóa dòng đó.
-     */
+
     @Transactional
     public boolean updateQuantity(User user, Long cartItemId, int quantity) {
         if (cartItemId == null || user == null) return false;
@@ -76,18 +68,12 @@ public class CartService {
         return true;
     }
 
-    /**
-     * Lấy danh sách dòng trong giỏ của user (có load Food).
-     */
     @Transactional(readOnly = true)
     public List<CartItem> getCartItems(User user) {
         if (user == null) return List.of();
         return cartItemRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
-    /**
-     * Tính tổng tiền giỏ hàng (số lượng * đơn giá từng món).
-     */
     @Transactional(readOnly = true)
     public BigDecimal getTotalAmount(User user) {
         if (user == null) return BigDecimal.ZERO;
@@ -98,9 +84,6 @@ public class CartService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * Xóa toàn bộ giỏ hàng của user (sau khi đặt hàng thành công).
-     */
     @Transactional
     public void clearCart(User user) {
         if (user != null) {

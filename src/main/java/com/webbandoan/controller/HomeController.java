@@ -4,6 +4,7 @@ import com.webbandoan.entity.Category;
 import com.webbandoan.entity.Food;
 import com.webbandoan.service.CategoryService;
 import com.webbandoan.service.FoodService;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,11 +27,14 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(CsrfToken csrfToken, Model model) {
         List<Category> categories = categoryService.findAll();
         List<Food> featuredFoods = foodService.findFeatured();
         model.addAttribute("categories", categories);
         model.addAttribute("featuredFoods", featuredFoods);
+        if (csrfToken != null) {
+            model.addAttribute("_csrf", csrfToken);
+        }
         return "home";
     }
 }

@@ -153,6 +153,46 @@
     }
 }
 
+/* Quantity Control - Nút +/- */
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: fit-content;
+    padding: 2px;
+}
+
+.qty-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    transition: background 0.2s ease;
+}
+
+.qty-btn:hover {
+    background: var(--bg);
+}
+
+.qty-btn:active {
+    background: var(--border);
+}
+
+.qty-display {
+    width: 40px;
+    text-align: center;
+    font-weight: 600;
+    user-select: none;
+}
+
 /* =====================================================
    Checkout & Order success (Bước 8)
    ===================================================== */
@@ -213,6 +253,16 @@
 
 .checkout-back {
     margin: 0;
+}
+
+.payment-hint {
+    margin: 12px 0 0 0;
+    padding: 12px 14px;
+    border-left: 4px solid var(--primary);
+    background: #f7f8ff;
+    color: var(--text-muted);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    line-height: 1.45;
 }
 
 .order-success-box {
@@ -468,4 +518,61 @@
     .order-detail-table td {
         padding: 8px 6px;
     }
+}
+
+/* =====================================================
+   Payment Methods (Phương thức thanh toán)
+   ===================================================== */
+
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.payment-method-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.payment-method-option input[type="radio"] {
+    margin-top: 6px;
+    cursor: pointer;
+    accent-color: var(--primary);
+    width: 18px;
+    height: 18px;
+}
+
+.payment-label {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    padding: 12px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+}
+
+.payment-method-option input[type="radio"]:checked + .payment-label {
+    border-color: var(--primary);
+    background: var(--bg);
+}
+
+.payment-name {
+    font-weight: 600;
+    color: var(--secondary);
+    font-size: 1rem;
+}
+
+.payment-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.payment-method-option input[type="radio"]:focus + .payment-label {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }

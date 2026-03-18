@@ -48,8 +48,29 @@ public class Order {
     @Column(name = "note", length = 500)
     private String note;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_method_id", nullable = false)
+    private PaymentMethod paymentMethod;  // COD hoặc MOMO
+
+    @Column(name = "payment_status", nullable = false, length = 50)
+    private String paymentStatus = "PENDING";  // PENDING, COMPLETED, FAILED, CANCELLED
+
+    @Column(name = "transaction_id", length = 100)
+    private String transactionId;  // Mã giao dịch Momo (nếu thanh toán Momo)
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
-
+    @PrePersist
+    protected void onCreate() {
+        if (orderDate == null) {
+            orderDate = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = "PENDING";
+        }
+        if (paymentStatus == null) {
+            paymentStatus = "PENDING";
+        }
+    }
 }

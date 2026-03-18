@@ -34,18 +34,17 @@
                         </td>
                         <td class="cart-item-price" th:text="${#numbers.formatDecimal(item.food.price, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
                         <td class="cart-item-qty">
-                                                        <form th:action="@{/cart/update}" method="post" class="cart-update-form">
-                                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <input type="hidden" name="cartItemId" th:value="${item.id}"/>
-                                <input type="number" name="quantity" th:value="${item.quantity}" min="1" max="99" class="qty-input"/>
-                                <button type="submit" class="btn btn-small">Cập nhật</button>
-                            </form>
+                            <div class="qty-control">
+                                <button type="button" class="qty-btn qty-minus" th:data-cart-id="${item.id}">−</button>
+                                <span class="qty-display" th:text="${item.quantity}">1</span>
+                                <button type="button" class="qty-btn qty-plus" th:data-cart-id="${item.id}">+</button>
+                            </div>
                         </td>
                         <td class="cart-item-subtotal" th:text="${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 0, 'POINT') + ' ₫'}">70.000 ₫</td>
                         <td class="cart-item-remove">
-                                                        <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" class="cart-remove-form"
-                                                                    onsubmit="return confirm('Bạn có chắc muốn xóa món này khỏi giỏ?');">
-                                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" class="cart-remove-form"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa món này khỏi giỏ?');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-small btn-danger">Xóa</button>
                             </form>
                         </td>
@@ -73,5 +72,159 @@
 </main>
 
 <div th:replace="~{layout/footer :: footer}"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý nút + và -
+    document.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const cartId = this.getAttribute('data-cart-id');
+            const row = this.closest('tr');
+            const qtyDisplay = row.querySelector('.qty-display');
+            let currentQty = parseInt(qtyDisplay.textContent);
+            
+            if (this.classList.contains('qty-minus')) {
+                if (currentQty > 1) {
+                    currentQty--;
+                    updateQuantity(cartId, currentQty);
+                }
+            } else if (this.classList.contains('qty-plus')) {
+                if (currentQty < 99) {
+                    currentQty++;
+                    updateQuantity(cartId, currentQty);
+                }
+            }
+        });
+    });
+    
+    // Xử lý nút xóa
+    document.querySelectorAll('.cart-remove-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!confirm('Bạn có chắc muốn xóa món này khỏi giỏ?')) {
+                return;
+            }
+            
+            const cartId = this.closest('tr').querySelector('.qty-btn').getAttribute('data-cart-id');
+            removeItem(cartId);
+        });
+    });
+    
+    function updateQuantity(cartId, newQuantity) {
+        const payload = {
+            cartItemId: cartId,
+            quantity: newQuantity
+        };
+        
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Add CSRF token if available
+        if (window._csrf && window._csrf.headerName && window._csrf.token) {
+            headers[window._csrf.headerName] = window._csrf.token;
+        }
+        
+        fetch('/cart/api/update', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(payload),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Update Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update Response:', data);
+            if (data.success) {
+                updateCartDisplay(data);
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Lỗi khi cập nhật: ' + error.message);
+        });
+    }
+    
+    function removeItem(cartId) {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Add CSRF token if available
+        if (window._csrf && window._csrf.headerName && window._csrf.token) {
+            headers[window._csrf.headerName] = window._csrf.token;
+        }
+        
+        fetch('/cart/api/remove/' + cartId, {
+            method: 'POST',
+            headers: headers,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Remove Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Remove Response:', data);
+            if (data.success) {
+                // Xóa dòng khỏi bảng
+                const row = document.querySelector(`button[data-cart-id="${cartId}"]`).closest('tr');
+                row.style.opacity = '0.5';
+                setTimeout(() => {
+                    row.remove();
+                    updateCartDisplay(data);
+                    // Kiểm tra nếu giỏ trống
+                    if (data.cartCount === 0) {
+                        location.reload();
+                    }
+                }, 300);
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Lỗi khi xóa: ' + error.message);
+        });
+    }
+    
+    function updateCartDisplay(data) {
+        if (data.items && data.items.length > 0) {
+            // Cập nhật từng dòng
+            data.items.forEach(item => {
+                const btn = document.querySelector(`button[data-cart-id="${item.id}"]`);
+                if (btn) {
+                    const row = btn.closest('tr');
+                    // Cập nhật số lượng
+                    row.querySelector('.qty-display').textContent = item.quantity;
+                    // Cập nhật thành tiền
+                    const subsTotal = (item.subtotal || (item.price * item.quantity));
+                    row.querySelector('.cart-item-subtotal').textContent = 
+                        formatCurrency(subsTotal) + ' ₫';
+                }
+            });
+        }
+        
+        // Cập nhật tổng cộng
+        const totalElement = document.querySelector('.total-amount');
+        if (totalElement) {
+            totalElement.textContent = formatCurrency(data.totalAmount) + ' ₫';
+        }
+    }
+    
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('vi-VN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
+    }
+});
+</script>
+
 </body>
 </html>

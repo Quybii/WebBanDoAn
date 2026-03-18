@@ -1,5 +1,6 @@
 package com.webbandoan.config;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableWebSecurity
@@ -17,10 +19,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
+
    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers(
+                    "/api/**",
+                    "/cart/api/**",  // Exempt cart API endpoints from CSRF
+                    "/payment/momo-callback"  // Exempt MoMo callback endpoint from CSRF
+                )
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/",
@@ -28,7 +42,9 @@ public class SecurityConfig {
                         "/register",
                         "/css/**",
                         "/js/**",
-                        "/images/**"
+                        "/images/**",
+                        "/payment/momo-callback",
+                        "/payment/momo-return"
                 ).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

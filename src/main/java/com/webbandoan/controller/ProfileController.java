@@ -3,6 +3,7 @@ package com.webbandoan.controller;
 import com.webbandoan.entity.User;
 import com.webbandoan.repository.UserRepository;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,12 +24,15 @@ public class ProfileController {
     }
 
     @GetMapping
-    public String profilePage(Authentication auth, Model model) {
+    public String profilePage(Authentication auth, CsrfToken csrfToken, Model model) {
         if (auth == null) return "redirect:/login";
         String username = auth.getName();
         Optional<User> u = userRepository.findByUsername(username);
         if (u.isEmpty()) return "redirect:/login";
         model.addAttribute("user", u.get());
+        if (csrfToken != null) {
+            model.addAttribute("_csrf", csrfToken);
+        }
         return "profile";
     }
 
