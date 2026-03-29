@@ -42,8 +42,7 @@
                         </td>
                         <td class="cart-item-subtotal" th:text="${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 0, 'POINT') + ' ₫'}">70.000 ₫</td>
                         <td class="cart-item-remove">
-                            <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" class="cart-remove-form"
-                                  onsubmit="return confirm('Bạn có chắc muốn xóa món này khỏi giỏ?');">
+                            <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post" class="cart-remove-form">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-small btn-danger">Xóa</button>
                             </form>
@@ -70,6 +69,18 @@
         </div>
     </div>
 </main>
+
+<!-- Custom Confirm Modal (Thêm mới) -->
+<div id="custom-confirm-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top: 0; color: var(--secondary);">Xác nhận</h3>
+        <p>Bạn có chắc chắn muốn xóa món này khỏi giỏ hàng không?</p>
+        <div class="modal-actions">
+            <button id="btn-modal-cancel" class="btn" style="background: #6c757d; color: var(--white);">Hủy</button>
+            <button id="btn-modal-confirm" class="btn btn-danger" style="background: #dc3545; color: var(--white);">Xóa ngay</button>
+        </div>
+    </div>
+</div>
 
 <div th:replace="~{layout/footer :: footer}"></div>
 
@@ -98,19 +109,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Xử lý nút xóa
+    // ==========================================
+    // Xử lý Custom Modal cho nút xóa (Đã cập nhật)
+    // ==========================================
+    const modal = document.getElementById('custom-confirm-modal');
+    const btnCancel = document.getElementById('btn-modal-cancel');
+    const btnConfirm = document.getElementById('btn-modal-confirm');
+    let itemToRemoveId = null; // Biến lưu ID của món cần xóa
+
+    // Bắt sự kiện khi form xóa được submit
     document.querySelectorAll('.cart-remove-form').forEach(form => {
         form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!confirm('Bạn có chắc muốn xóa món này khỏi giỏ?')) {
-                return;
-            }
+            e.preventDefault(); // Chặn load lại trang
             
-            const cartId = this.closest('tr').querySelector('.qty-btn').getAttribute('data-cart-id');
-            removeItem(cartId);
+            // Lấy ID giỏ hàng từ nút cộng/trừ cùng hàng
+            itemToRemoveId = this.closest('tr').querySelector('.qty-btn').getAttribute('data-cart-id');
+            
+            // Hiện Modal
+            if (modal) modal.classList.add('active');
         });
     });
+
+    // Khi bấm nút "Hủy" trong Modal
+    if (btnCancel) {
+        btnCancel.addEventListener('click', function() {
+            if (modal) modal.classList.remove('active');
+            itemToRemoveId = null;
+        });
+    }
+
+    // Khi bấm nút "Xóa ngay" trong Modal
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', function() {
+            if (itemToRemoveId) {
+                removeItem(itemToRemoveId); // Gọi hàm AJAX xóa ở bên dưới
+            }
+            if (modal) modal.classList.remove('active');
+        });
+    }
+    // ==========================================
     
+    // Các hàm AJAX bên dưới giữ nguyên 100% của bạn
     function updateQuantity(cartId, newQuantity) {
         const payload = {
             cartItemId: cartId,
@@ -214,6 +253,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalElement = document.querySelector('.total-amount');
         if (totalElement) {
             totalElement.textContent = formatCurrency(data.totalAmount) + ' ₫';
+        }
+        // CẬP NHẬT SỐ LƯỢNG TRÊN HEADER
+        if (data.cartCount !== undefined) {
+            const headerCartCount = document.getElementById('header-cart-count');
+            if (headerCartCount) {
+                headerCartCount.textContent = data.cartCount;
+            }
         }
     }
     
