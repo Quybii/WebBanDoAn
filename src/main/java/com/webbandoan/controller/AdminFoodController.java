@@ -44,7 +44,9 @@ public class AdminFoodController {
     @GetMapping
     public String list(Model model) {
         List<Food> foods = foodService.findAll();
+        List<Category> categories = categoryService.findAll();
         model.addAttribute("foods", foods);
+        model.addAttribute("categories", categories);
         return "admin/food-list";
     }
 
@@ -69,12 +71,17 @@ public class AdminFoodController {
         return "admin/food-form";
     }
 
-    @PostMapping
-        public String save(
+    @PostMapping({"", "/save"})
+    public String save(
             @RequestParam(required = false) Long categoryId,
             @ModelAttribute Food food,
             @RequestParam(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images,
             RedirectAttributes redirectAttributes) {
+        Food existingFood = food.getId() != null ? foodService.findById(food.getId()) : null;
+        if (existingFood != null && food.getImageUrl() == null) {
+            food.setImageUrl(existingFood.getImageUrl());
+        }
+
         if (food.getName() == null || food.getName().trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên món không được để trống.");
             return food.getId() == null ? "redirect:/admin/foods/new" : "redirect:/admin/foods/" + food.getId() + "/edit";
@@ -96,10 +103,15 @@ public class AdminFoodController {
         if (food.getIsAvailable() == null) {
             food.setIsAvailable(true);
         }
-        foodService.save(food);
+        Food savedFood = foodService.save(food);
+
         // store uploaded images if provided
         if (images != null && images.length > 0) {
-            foodImageService.storeImages(food, images);
+            var savedImages = foodImageService.storeImages(savedFood, images);
+            if (savedImages != null && !savedImages.isEmpty()) {
+                savedFood.setImageUrl(savedImages.get(0).getImageUrl());
+                foodService.save(savedFood);
+            }
         }
         redirectAttributes.addFlashAttribute("successMessage", food.getId() == null ? "Đã thêm món mới." : "Đã cập nhật món.");
         return "redirect:/admin/foods";

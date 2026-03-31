@@ -12,7 +12,13 @@
 
 <main class="admin-main">
     <div class="container">
-        <h1 class="admin-page-title">Dashboard</h1>
+        <div class="dashboard-toolbar">
+            <div>
+                <label for="reportMonth" class="dashboard-filter-label">Chọn tháng báo cáo</label>
+                <input type="month" id="reportMonth" class="dashboard-filter-input" th:value="${selectedMonth}" />
+            </div>
+            <button type="button" class="btn btn-primary" id="refreshDashboardCharts">Cập nhật biểu đồ</button>
+        </div>
 
         <div class="admin-stats">
             <div class="stat-card">
@@ -44,9 +50,157 @@
                 <button type="submit" class="btn" th:classappend="${shopOpen} ? ' btn-secondary' : ' btn-primary'" th:text="${shopOpen} ? 'Đóng cửa (Tạm dừng nhận đơn)' : 'Mở cửa (Nhận đơn)'"></button>
             </form>
         </div>
+
+        <div class="dashboard-summary-card">
+            <h2>Doanh thu tháng <span id="selectedMonthLabel" th:text="${selectedMonth}">2026-03</span></h2>
+            <p class="dashboard-summary-value" id="totalRevenueValue">0 ₫</p>
+        </div>
+
+        <div class="dashboard-chart-grid">
+            <section class="chart-card">
+                <div class="chart-card-header">
+                    <h2>Doanh thu theo ngày</h2>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </section>
+
+            <section class="chart-card">
+                <div class="chart-card-header">
+                    <h2>Top 5 món bán chạy</h2>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="topFoodsChart"></canvas>
+                </div>
+            </section>
+        </div>
     </div>
 </main>
 
 <div th:replace="~{layout/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const chartDataUrl = /*[[@{/admin/dashboard/chart-data}]]*/ '/admin/dashboard/chart-data';
+    const monthInput = document.getElementById('reportMonth');
+    const refreshButton = document.getElementById('refreshDashboardCharts');
+    const revenueValueEl = document.getElementById('totalRevenueValue');
+    const selectedMonthLabel = document.getElementById('selectedMonthLabel');
+    const currencyFormatter = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0
+    });
+
+    let revenueChart = null;
+    let topFoodsChart = null;
+
+    function destroyCharts() {
+        if (revenueChart) {
+            revenueChart.destroy();
+            revenueChart = null;
+        }
+        if (topFoodsChart) {
+            topFoodsChart.destroy();
+            topFoodsChart = null;
+        }
+    }
+
+    function renderCharts(data) {
+        destroyCharts();
+
+        selectedMonthLabel.textContent = data.month || monthInput.value;
+        revenueValueEl.textContent = currencyFormatter.format(data.totalRevenue || 0);
+
+        revenueChart = new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: data.revenueLabels || [],
+                datasets: [{
+                    label: 'Doanh thu',
+                    data: data.revenueValues || [],
+                    borderWidth: 1,
+                    backgroundColor: 'rgba(196, 92, 38, 0.75)',
+                    borderColor: 'rgba(196, 92, 38, 1)',
+                    borderRadius: 8,
+                    maxBarThickness: 28
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` Doanh thu: ${currencyFormatter.format(context.raw || 0)}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => currencyFormatter.format(value)
+                        }
+                    }
+                }
+            }
+        });
+
+        topFoodsChart = new Chart(document.getElementById('topFoodsChart'), {
+            type: 'pie',
+            data: {
+                labels: data.topFoodLabels || [],
+                datasets: [{
+                    data: data.topFoodValues || [],
+                    backgroundColor: [
+                        '#c45c26', '#1f4e79', '#2f855a', '#d69e2e', '#805ad5'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` ${context.label}: ${context.raw || 0} đơn`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadDashboardCharts() {
+        const month = monthInput.value || new Date().toISOString().slice(0, 7);
+        const url = new URL(chartDataUrl, window.location.origin);
+        url.searchParams.set('month', month);
+
+        const response = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) {
+            throw new Error('Không tải được dữ liệu biểu đồ');
+        }
+
+        const data = await response.json();
+        renderCharts(data);
+    }
+
+    refreshButton.addEventListener('click', () => {
+        loadDashboardCharts().catch(console.error);
+    });
+
+    monthInput.addEventListener('change', () => {
+        loadDashboardCharts().catch(console.error);
+    });
+
+    loadDashboardCharts().catch(console.error);
+</script>
 </body>
 </html>

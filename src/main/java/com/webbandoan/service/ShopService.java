@@ -3,10 +3,6 @@ package com.webbandoan.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/**
- * Simple shop status service. Controls whether site accepts new orders.
- * Controlled by property `shop.open` (default true).
- */
 @Service
 public class ShopService {
 

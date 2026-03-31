@@ -3,8 +3,12 @@ package com.webbandoan.repository;
 import com.webbandoan.entity.Order;
 import com.webbandoan.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -15,4 +19,26 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByUserOrderByOrderDateDesc(User user);
+
+        @Query(value = """
+                        SELECT CAST(o.order_date AS date) AS report_date, COALESCE(SUM(o.total_amount), 0) AS revenue
+                        FROM orders o
+                        WHERE o.payment_status = 'COMPLETED'
+                            AND o.order_date >= :startDate
+                            AND o.order_date < :endDate
+                        GROUP BY CAST(o.order_date AS date)
+                        ORDER BY report_date
+                        """, nativeQuery = true)
+        List<Object[]> findDailyRevenueBetween(@Param("startDate") LocalDateTime startDate,
+                                                                                     @Param("endDate") LocalDateTime endDate);
+
+        @Query(value = """
+                        SELECT COALESCE(SUM(o.total_amount), 0)
+                        FROM orders o
+                        WHERE o.payment_status = 'COMPLETED'
+                            AND o.order_date >= :startDate
+                            AND o.order_date < :endDate
+                        """, nativeQuery = true)
+        BigDecimal findTotalRevenueBetween(@Param("startDate") LocalDateTime startDate,
+                                                                             @Param("endDate") LocalDateTime endDate);
 }

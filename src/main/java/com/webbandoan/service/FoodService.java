@@ -85,7 +85,7 @@ public class FoodService {
      */
     @Transactional(readOnly = true)
     public List<Food> findAll() {
-        return foodRepository.findAll();
+        return foodRepository.findAllByOrderByIdDesc();
     }
 
     /**
