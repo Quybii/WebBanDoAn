@@ -1,5 +1,6 @@
 package com.webbandoan.repository;
 
+import com.webbandoan.entity.Food;
 import com.webbandoan.entity.Order;
 import com.webbandoan.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,4 +42,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         """, nativeQuery = true)
         BigDecimal findTotalRevenueBetween(@Param("startDate") LocalDateTime startDate,
                                                                              @Param("endDate") LocalDateTime endDate);
+
+        // Kể kiểm tra xem User này đã từng mua món này và đơn hàng đã COMPLETED chưa
+        @Query("SELECT CASE WHEN COUNT(od) > 0 THEN true ELSE false END " +
+            "FROM OrderDetail od " +
+            "WHERE od.order.user = :user " +
+            "AND od.food = :food " +
+            "AND od.order.status = 'COMPLETED'")
+        boolean hasUserPurchasedFood(@Param("user") User user, @Param("food") Food food);
 }

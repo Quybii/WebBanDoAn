@@ -61,4 +61,16 @@ public class UserService {
     public boolean existsByUsername(String username) {
         return username != null && userRepository.existsByUsername(username.trim());
     }
+
+    /**
+     * Lấy thông tin người dùng dựa vào username.
+     * Trả về User hoặc null nếu không tìm thấy.
+     */
+    @Transactional(readOnly = true)
+    public User findByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return null;
+        }
+        return userRepository.findByUsername(username).orElse(null);
+    }
 }

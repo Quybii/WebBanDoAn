@@ -75,8 +75,10 @@ public class AdminFoodController {
     public String save(
             @RequestParam(required = false) Long categoryId,
             @ModelAttribute Food food,
-            @RequestParam(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images,
+            // Đổi value="images" thành value="imageFiles"
+            @RequestParam(value = "imageFiles", required = false) org.springframework.web.multipart.MultipartFile[] imageFiles,
             RedirectAttributes redirectAttributes) {
+            
         Food existingFood = food.getId() != null ? foodService.findById(food.getId()) : null;
         if (existingFood != null && food.getImageUrl() == null) {
             food.setImageUrl(existingFood.getImageUrl());
@@ -105,9 +107,9 @@ public class AdminFoodController {
         }
         Food savedFood = foodService.save(food);
 
-        // store uploaded images if provided
-        if (images != null && images.length > 0) {
-            var savedImages = foodImageService.storeImages(savedFood, images);
+        // Đổi biến images thành imageFiles ở đây
+        if (imageFiles != null && imageFiles.length > 0) {
+            var savedImages = foodImageService.storeImages(savedFood, imageFiles);
             if (savedImages != null && !savedImages.isEmpty()) {
                 savedFood.setImageUrl(savedImages.get(0).getImageUrl());
                 foodService.save(savedFood);

@@ -224,3 +224,21 @@ IF COL_LENGTH('users', 'latitude') IS NULL
     ALTER TABLE users ADD latitude FLOAT NULL;
 IF COL_LENGTH('users', 'longitude') IS NULL
     ALTER TABLE users ADD longitude FLOAT NULL;
+
+--Tạo bảng reviews (Đánh giá món ăn)
+CREATE TABLE dbo.reviews (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    food_id BIGINT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment NVARCHAR(1000),
+    created_at DATETIME DEFAULT GETDATE(),
+    
+    -- Khóa ngoại liên kết với bảng users
+    CONSTRAINT fk_review_user FOREIGN KEY (user_id) 
+        REFERENCES users (id) ON DELETE CASCADE,
+        
+    -- Khóa ngoại liên kết với bảng foods
+    CONSTRAINT fk_review_food FOREIGN KEY (food_id) 
+        REFERENCES foods (id) ON DELETE CASCADE
+);

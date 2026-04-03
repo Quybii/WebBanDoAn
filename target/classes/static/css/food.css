@@ -249,17 +249,50 @@
     box-shadow: var(--shadow);
 }
 
-.food-detail-image {
-    aspect-ratio: 4/3;
-    background: #eee;
+.food-detail-image-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Khung ảnh chính: Cố định cứng chiều cao 400px */
+.main-image-container {
+    width: 100%;
+    height: 400px;
+    background: #f8f9fa;
     border-radius: var(--radius);
     overflow: hidden;
 }
 
-.food-detail-image img {
+.main-image-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+}
+
+/* Danh sách ảnh nhỏ */
+.thumbnail-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.thumbnail-gallery img {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    transition: border-color 0.2s;
+}
+
+.thumbnail-gallery img:hover {
+    border-color: var(--primary);
 }
 
 .food-detail-placeholder {
@@ -355,4 +388,134 @@
     .food-detail-image {
         max-height: 280px;
     }
+}
+
+/* =====================================================
+   Khu vực Đánh giá (Review Section)
+   ===================================================== */
+.review-section {
+    background: var(--white);
+    padding: 32px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.review-section-title {
+    font-size: 1.5rem;
+    color: var(--secondary);
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Form đánh giá */
+.review-form-container {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border: 1px solid #e9ecef;
+}
+
+.rating-input-container {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 5px;
+    font-size: 24px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.rating-stars .star.active {
+    color: #ffc107; /* Màu vàng cam cho sao */
+}
+
+.review-textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 15px;
+}
+
+.review-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.alert-message {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+/* Danh sách đánh giá */
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-item {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.review-user {
+    font-weight: bold;
+    color: var(--secondary);
+    font-size: 1.1rem;
+}
+
+.review-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.review-stars {
+    color: #ffc107;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.review-comment {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.no-review {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
 }
