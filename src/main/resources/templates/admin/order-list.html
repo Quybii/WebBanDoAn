@@ -49,6 +49,22 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="admin-pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/admin/orders(page=${currentPage - 1}, size=10)}"
+               class="pagination-btn">« Trước</a>
+            <span th:if="${currentPage == 0}" class="pagination-btn disabled">« Trước</span>
+
+            <span class="pagination-info">
+                Trang <strong th:text="${currentPage + 1}">1</strong> / <strong th:text="${totalPages}">1</strong>
+            </span>
+
+            <a th:if="${currentPage < totalPages - 1}"
+               th:href="@{/admin/orders(page=${currentPage + 1}, size=10)}"
+               class="pagination-btn">Sau »</a>
+            <span th:if="${currentPage >= totalPages - 1}" class="pagination-btn disabled">Sau »</span>
+        </div>
     </div>
 </main>
 

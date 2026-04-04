@@ -21,7 +21,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
      * Lấy các món đang bán (is_available = true), sắp theo id giảm dần.
      * Dùng cho "món nổi bật" trên trang chủ (lấy N món đầu).
      */
-    List<Food> findTop8ByIsAvailableTrueOrderByIdDesc();
+    List<Food> findTop8ByIsAvailableTrueAndIsAddonFalseOrderByIdDesc();
 
     /**
      * Lấy toàn bộ món cùng danh mục để hiển thị ở admin.
@@ -30,25 +30,31 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     List<Food> findAllByOrderByIdDesc();
 
     /**
+     * Phân trang: tất cả món cho admin.
+     */
+    @EntityGraph(attributePaths = "category")
+    Page<Food> findAllByOrderByIdDesc(Pageable pageable);
+
+    /**
      * Phân trang: món đang bán, sắp theo id giảm dần.
      */
-    Page<Food> findByIsAvailableTrueOrderByIdDesc(Pageable pageable);
+    Page<Food> findByIsAvailableTrueAndIsAddonFalseOrderByIdDesc(Pageable pageable);
 
     /**
      * Phân trang: lọc theo danh mục, món đang bán.
      */
-    Page<Food> findByCategoryIdAndIsAvailableTrue(Long categoryId, Pageable pageable);
+    Page<Food> findByCategoryIdAndIsAvailableTrueAndIsAddonFalse(Long categoryId, Pageable pageable);
 
     /**
      * Tìm theo tên (chứa keyword), món đang bán, có phân trang.
      */
-    Page<Food> findByNameContainingIgnoreCaseAndIsAvailableTrue(String keyword, Pageable pageable);
+    Page<Food> findByNameContainingIgnoreCaseAndIsAvailableTrueAndIsAddonFalse(String keyword, Pageable pageable);
 
     // Similar items: same category, exclude current id, limit by id desc
-    List<Food> findTop6ByCategoryIdAndIsAvailableTrueAndIdNotOrderByIdDesc(Long categoryId, Long idNot);
+    List<Food> findTop6ByCategoryIdAndIsAvailableTrueAndIsAddonFalseAndIdNotOrderByIdDesc(Long categoryId, Long idNot);
 
     // Hot items: order by number of orderDetails (most ordered). Use JPQL subquery to count.
-    @org.springframework.data.jpa.repository.Query("SELECT f FROM Food f WHERE f.isAvailable = true ORDER BY (SELECT COUNT(od) FROM com.webbandoan.entity.OrderDetail od WHERE od.food = f) DESC")
+    @org.springframework.data.jpa.repository.Query("SELECT f FROM Food f WHERE f.isAvailable = true AND f.isAddon = false ORDER BY (SELECT COUNT(od) FROM com.webbandoan.entity.OrderDetail od WHERE od.food = f) DESC")
     List<Food> findTopByPopularity(org.springframework.data.domain.Pageable pageable);
 
         @Query(value = """

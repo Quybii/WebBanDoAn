@@ -45,6 +45,9 @@ public class Food {
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable = true;
 
+    @Column(name = "is_addon", nullable = false)
+    private Boolean isAddon = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -74,6 +77,14 @@ public class Food {
 
     public void setIsAvailable(Boolean isAvailable) {
         this.isAvailable = isAvailable;
+    }
+
+    public Boolean getIsAddon() {
+        return isAddon;
+    }
+
+    public void setIsAddon(Boolean isAddon) {
+        this.isAddon = isAddon;
     }
 
     public LocalDateTime getCreatedAt() {

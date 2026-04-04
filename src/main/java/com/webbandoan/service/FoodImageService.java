@@ -71,6 +71,28 @@ public class FoodImageService {
         return foodImageRepository.findByFoodOrderByIdAsc(food);
     }
 
+    @Transactional(readOnly = true)
+    public String findPrimaryImageUrl(Food food) {
+        if (food == null) {
+            return null;
+        }
+
+        if (food.getImageUrl() != null && !food.getImageUrl().isBlank()) {
+            return food.getImageUrl();
+        }
+
+        List<FoodImage> images = foodImageRepository.findByFoodOrderByIdAsc(food);
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+
+        return images.stream()
+                .filter(image -> Boolean.TRUE.equals(image.getIsMain()))
+                .findFirst()
+                .map(FoodImage::getImageUrl)
+                .orElse(images.get(0).getImageUrl());
+    }
+
     @Transactional
     public void deleteImage(Long imageId) {
         if (imageId != null) {

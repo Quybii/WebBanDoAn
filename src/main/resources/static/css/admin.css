@@ -18,6 +18,59 @@
     padding: 14px 16px;
 }
 
+
+.image-preview-section {
+    margin-top: 8px;
+}
+
+.image-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.image-preview-item {
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.image-preview-item img {
+    width: 100%;
+    height: 96px;
+    object-fit: cover;
+    display: block;
+}
+
+.image-preview-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, 0.85);
+    color: #fff;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 16px;
+}
+
+.image-preview-badge {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
 .admin-logo {
     font-size: 1.4rem;
     font-weight: 700;
@@ -182,6 +235,80 @@
     width: 100px;
     text-align: center;
     vertical-align: middle;
+}
+
+.admin-tab-bar {
+    display: flex;
+    gap: 12px;
+    margin: 0 0 24px 0;
+    padding: 8px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+}
+
+.admin-tab-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.admin-tab-link:hover {
+    text-decoration: none;
+    background: #e5e7eb;
+}
+
+.admin-tab-link.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.admin-pagination .pagination-btn,
+.admin-pagination .pagination-info,
+.admin-pagination .pagination-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: var(--secondary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.admin-pagination .pagination-btn:hover,
+.admin-pagination .pagination-page:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.admin-pagination .pagination-info {
+    border: none;
+    background: transparent;
+}
+
+.admin-pagination .disabled {
+    opacity: 0.45;
+    pointer-events: none;
 }
 
 .btn-save:hover { background-color: #a84b1d; }

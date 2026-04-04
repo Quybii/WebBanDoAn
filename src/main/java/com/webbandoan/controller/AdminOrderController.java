@@ -2,6 +2,9 @@ package com.webbandoan.controller;
 
 import com.webbandoan.entity.Order;
 import com.webbandoan.service.OrderService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,9 +33,16 @@ public class AdminOrderController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        List<Order> orders = orderService.findAll();
-        model.addAttribute("orders", orders);
+    public String list(@RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       Model model) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orderPage = orderService.findAll(pageable);
+        model.addAttribute("orderPage", orderPage);
+        model.addAttribute("orders", orderPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", orderPage.getTotalPages());
+        model.addAttribute("totalElements", orderPage.getTotalElements());
         return "admin/order-list";
     }
 

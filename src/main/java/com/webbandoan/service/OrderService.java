@@ -6,6 +6,8 @@ import com.webbandoan.entity.OrderDetail;
 import com.webbandoan.entity.PaymentMethod;
 import com.webbandoan.entity.User;
 import com.webbandoan.repository.OrderRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -121,6 +123,14 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<Order> findAll() {
         return orderRepository.findAll();
+    }
+
+    /**
+     * Lấy tất cả đơn hàng (admin dùng) có phân trang.
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> findAll(Pageable pageable) {
+        return orderRepository.findAll(pageable);
     }
 
     /**

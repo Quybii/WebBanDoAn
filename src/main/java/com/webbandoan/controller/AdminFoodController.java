@@ -2,11 +2,16 @@ package com.webbandoan.controller;
 
 import com.webbandoan.entity.Category;
 import com.webbandoan.entity.Food;
+import com.webbandoan.entity.FoodImage;
 import com.webbandoan.service.FoodImageService;
 import com.webbandoan.service.CategoryService;
 import com.webbandoan.service.FoodService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller Admin: CRUD món ăn.
@@ -42,11 +48,18 @@ public class AdminFoodController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        List<Food> foods = foodService.findAll();
+    public String list(@RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       Model model) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Food> foodPage = foodService.findAllPaged(pageable);
         List<Category> categories = categoryService.findAll();
-        model.addAttribute("foods", foods);
+        model.addAttribute("foodPage", foodPage);
+        model.addAttribute("foods", foodPage.getContent());
         model.addAttribute("categories", categories);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", foodPage.getTotalPages());
+        model.addAttribute("totalElements", foodPage.getTotalElements());
         return "admin/food-list";
     }
 
@@ -69,6 +82,23 @@ public class AdminFoodController {
         model.addAttribute("images", foodImageService.findByFood(food));
         model.addAttribute("categories", categories);
         return "admin/food-form";
+    }
+
+    @GetMapping("/{id}/images")
+    public ResponseEntity<?> getImages(@PathVariable Long id) {
+        Food food = foodService.findById(id);
+        if (food == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<FoodImage> images = foodImageService.findByFood(food);
+        List<Map<String, Object>> response = images.stream()
+                .map(image -> Map.<String, Object>of(
+                        "id", image.getId(),
+                        "imageUrl", image.getImageUrl(),
+                        "isMain", Boolean.TRUE.equals(image.getIsMain())
+                ))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping({"", "/save"})
@@ -102,6 +132,9 @@ public class AdminFoodController {
         food.setCategory(category);
         if (food.getIsAvailable() == null) {
             food.setIsAvailable(true);
+        }
+        if (food.getIsAddon() == null) {
+            food.setIsAddon(false);
         }
         Food savedFood = foodService.save(food);
 

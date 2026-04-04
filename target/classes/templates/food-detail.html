@@ -21,11 +21,26 @@
         </div>
 
         <div class="food-detail" th:if="${food != null}">
-            <div class="food-detail-image">
-                <img th:if="${food.imageUrl != null and !food.imageUrl.isEmpty()}"
-                     th:src="${food.imageUrl}" th:alt="${food.name}"/>
-                <div th:if="${food.imageUrl == null or food.imageUrl.isEmpty()}" class="food-detail-placeholder">
-                    <span>🍽</span>
+            <div class="food-detail-image-panel">
+                <div class="food-detail-image">
+                    <button type="button" class="food-detail-image-zoom" th:if="${food.imageUrl != null and !food.imageUrl.isEmpty()}"
+                            th:attr="data-image=${food.imageUrl}, data-alt=${food.name}" onclick="openFoodImageViewer(this)">
+                        <img id="foodMainImage"
+                             th:src="${food.imageUrl}" th:alt="${food.name}"/>
+                    </button>
+                    <div th:if="${food.imageUrl == null or food.imageUrl.isEmpty()}" class="food-detail-placeholder">
+                        <span>🍽</span>
+                    </div>
+                </div>
+                <div class="food-detail-thumbnails" th:if="${foodImages != null and !foodImages.isEmpty()}">
+                    <button type="button"
+                            class="food-thumbnail"
+                            th:classappend="${image.isMain} ? ' active' : ''"
+                            th:each="image : ${foodImages}"
+                            th:attr="data-image=${image.imageUrl}, data-alt=${food.name}"
+                            onclick="selectFoodPreviewImage(this)">
+                        <img th:src="${image.imageUrl}" th:alt="${food.name}"/>
+                    </button>
                 </div>
             </div>
             <div class="food-detail-info">
@@ -40,24 +55,8 @@
 
                 <!-- Nút thêm vào giỏ (Bước 7 sẽ xử lý /cart/add) -->
                 <div class="food-detail-actions">
-                    <button type="button" class="btn btn-primary btn-add-cart-large btn-add-cart-ajax" th:attr="data-food-id=${food.id}">Thêm vào giỏ</button>
+                    <button type="button" class="btn btn-primary btn-add-cart-large" th:attr="data-food-id=${food.id}" onclick="openAddToCartModal(this)">Thêm vào giỏ</button>
                     <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua sắm</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Similar items carousel -->
-        <section class="section-title">Món tương tự</section>
-        <div class="carousel-row" th:if="${similarFoods != null and !similarFoods.isEmpty()}">
-            <div class="carousel-track">
-                <div class="card" th:each="s : ${similarFoods}">
-                    <a th:href="@{/foods/{id}(id=${s.id})}">
-                        <img th:if="${s.imageUrl != null}" th:src="${s.imageUrl}" th:alt="${s.name}" />
-                        <div class="card-body">
-                            <h4 th:text="${s.name}">Tên</h4>
-                            <p class="price" th:text="${#numbers.formatDecimal(s.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
-                        </div>
-                    </a>
                 </div>
             </div>
         </div>
@@ -68,7 +67,10 @@
             <div class="carousel-track">
                 <div class="card" th:each="h : ${hotFoods}">
                     <a th:href="@{/foods/{id}(id=${h.id})}">
-                        <img th:if="${h.imageUrl != null}" th:src="${h.imageUrl}" th:alt="${h.name}" />
+                        <div class="card-image-wrap">
+                            <img th:if="${h.imageUrl != null and !h.imageUrl.isEmpty()}" th:src="${h.imageUrl}" th:alt="${h.name}" />
+                            <div th:if="${h.imageUrl == null or h.imageUrl.isEmpty()}" class="card-image-placeholder">🍽</div>
+                        </div>
                         <div class="card-body">
                             <h4 th:text="${h.name}">Tên</h4>
                             <p class="price" th:text="${#numbers.formatDecimal(h.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
@@ -84,7 +86,10 @@
             <div class="carousel-track">
                 <div class="card" th:each="d : ${dealFoods}">
                     <a th:href="@{/foods/{id}(id=${d.id})}">
-                        <img th:if="${d.imageUrl != null}" th:src="${d.imageUrl}" th:alt="${d.name}" />
+                        <div class="card-image-wrap">
+                            <img th:if="${d.imageUrl != null and !d.imageUrl.isEmpty()}" th:src="${d.imageUrl}" th:alt="${d.name}" />
+                            <div th:if="${d.imageUrl == null or d.imageUrl.isEmpty()}" class="card-image-placeholder">🍽</div>
+                        </div>
                         <div class="card-body">
                             <h4 th:text="${d.name}">Tên</h4>
                             <p class="price" th:text="${#numbers.formatDecimal(d.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
@@ -96,6 +101,426 @@
     </div>
 </main>
 
+<div id="foodImageViewer" class="food-image-viewer" onclick="closeFoodImageViewer()" style="display: none;">
+    <div class="food-image-viewer-content" onclick="event.stopPropagation()">
+        <button type="button" class="food-image-viewer-close" onclick="closeFoodImageViewer()">&times;</button>
+        <img id="foodImageViewerImg" src="" alt="Hình món ăn phóng to"/>
+        <p id="foodImageViewerCaption"></p>
+    </div>
+</div>
+
+<!-- MODAL: Thêm vào giỏ hàng với gợi ý kèm theo -->
+<div id="addToCartModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeAddToCartModal()">&times;</span>
+        
+        <!-- Thông tin sản phẩm chính -->
+        <div class="modal-main-product">
+            <img id="modalProductImage" src="" alt="Sản phẩm" class="modal-product-image"/>
+            <div class="modal-product-info">
+                <h2 id="modalProductName">Tên sản phẩm</h2>
+                <p id="modalProductDesc" class="modal-product-desc">Mô tả sản phẩm</p>
+                <p id="modalProductPrice" class="modal-product-price">0 ₫</p>
+                
+                <!-- Quantity Controls -->
+                <div class="quantity-control">
+                    <button type="button" class="qty-btn qty-minus" onclick="decrementQuantity()">−</button>
+                    <input type="number" id="modalQuantity" class="qty-input" value="1" min="1" readonly/>
+                    <button type="button" class="qty-btn qty-plus" onclick="incrementQuantity()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gợi ý kèm theo -->
+        <div id="modalRecommendations" style="display: none;">
+            <h3 class="modal-section-title">Gợi ý kèm theo</h3>
+            <p class="modal-recommendations-subtitle">Chọn các mục bổ sung (tuỳ chọn):</p>
+            <div id="modalRecommendationsContainer" class="modal-recommendations-list">
+                <!-- Sẽ được fill bởi JavaScript -->
+            </div>
+        </div>
+
+        <!-- Tóm tắt giá -->
+        <div class="modal-price-summary">
+            <div class="price-row">
+                <span>Giá sản phẩm:</span>
+                <span id="modalBasePrice">0 ₫</span>
+            </div>
+            <div id="modalAddonsSummary"></div>
+            <div class="price-row price-total">
+                <span>Tổng cộng:</span>
+                <span id="modalTotalPrice">0 ₫</span>
+            </div>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeAddToCartModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" id="modalAddToCartBtn" onclick="confirmAddToCart()">Thêm vào giỏ</button>
+        </div>
+    </div>
+</div>
+
 <div th:replace="~{layout/footer :: footer}"></div>
-</body>
-</html>
+
+<script>
+// State cho modal
+let currentModalFoodId = null;
+let currentModalFoodPrice = 0;
+let selectedAddons = {};  // { addonId: { name, price, selected: true/false } }
+let recommendations = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, ready to load recommendations on modal open');
+});
+
+/**
+ * Mở modal thêm vào giỏ
+ */
+function openAddToCartModal(button) {
+    const foodId = button.getAttribute('data-food-id');
+    const foodName = document.querySelector('.food-detail-title').textContent;
+    const foodPrice = parseFloat(document.querySelector('.food-detail-price').textContent.replace(/[^\d,]/g, '').replace(',', '.'));
+    const foodImageElement = document.querySelector('.food-detail-image img');
+    const foodImage = foodImageElement?.src ? foodImageElement.src : null;
+    const foodDesc = document.querySelector('.food-detail-desc p')?.textContent || 'Không có mô tả';
+
+    console.log('=== Opening modal for food:', foodId);
+    
+    currentModalFoodId = foodId;
+    currentModalFoodPrice = foodPrice;
+    selectedAddons = {};
+
+    // Fill thông tin sản phẩm chính
+    document.getElementById('modalProductName').textContent = foodName;
+    document.getElementById('modalProductDesc').textContent = foodDesc;
+    document.getElementById('modalProductPrice').textContent = formatPrice(foodPrice) + ' ₫';
+    
+    const modalImage = document.getElementById('modalProductImage');
+    if (foodImage) {
+        modalImage.src = foodImage;
+        modalImage.style.display = 'block';
+    } else {
+        // Nếu không có ảnh, hiển thị emoji bằng div thay vì img tag
+        modalImage.style.display = 'none';
+    }
+    
+    modalImage.onerror = function() {
+        this.style.display = 'none';
+    };
+
+    // Fill base price
+    document.getElementById('modalBasePrice').textContent = formatPrice(foodPrice) + ' ₫';
+
+    // Hiển thị modal bằng flex để giữ căn giữa màn hình
+    document.getElementById('addToCartModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Cập nhật tổng tiền
+    updateModalTotalPrice();
+
+    // Load recommendations từ API
+    console.log('Fetching recommendations for food:', foodId);
+    fetch(`/api/foods/${foodId}/recommendations?limit=6`)
+        .then(response => {
+            console.log('API Response status:', response.status);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Recommendations received:', data);
+            if (data && data.length > 0) {
+                displayRecommendationsInModal(data);
+            } else {
+                console.log('No recommendations data');
+                document.getElementById('modalRecommendations').style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load recommendations:', error);
+            document.getElementById('modalRecommendations').style.display = 'none';
+        });
+}
+
+function selectFoodPreviewImage(button) {
+    const imageUrl = button.getAttribute('data-image');
+    const imageAlt = button.getAttribute('data-alt') || '';
+    const mainImage = document.getElementById('foodMainImage');
+
+    if (mainImage && imageUrl) {
+        mainImage.src = imageUrl;
+        mainImage.alt = imageAlt;
+        mainImage.parentElement.setAttribute('data-image', imageUrl);
+        mainImage.parentElement.setAttribute('data-alt', imageAlt);
+    }
+
+    document.querySelectorAll('.food-thumbnail').forEach(item => item.classList.remove('active'));
+    button.classList.add('active');
+}
+
+function openFoodImageViewer(target) {
+    const button = target && target.getAttribute ? target : null;
+    const imageUrl = button ? button.getAttribute('data-image') : null;
+    const imageAlt = button ? button.getAttribute('data-alt') : '';
+    if (!imageUrl) return;
+
+    const viewer = document.getElementById('foodImageViewer');
+    const viewerImage = document.getElementById('foodImageViewerImg');
+    const viewerCaption = document.getElementById('foodImageViewerCaption');
+    viewerImage.src = imageUrl;
+    viewerImage.alt = imageAlt;
+    viewerCaption.textContent = imageAlt;
+    viewer.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFoodImageViewer() {
+    const viewer = document.getElementById('foodImageViewer');
+    if (viewer) {
+        viewer.style.display = 'none';
+    }
+    document.body.style.overflow = 'auto';
+}
+
+/**
+ * Hiển thị gợi ý kèm theo trong modal
+ */
+function displayRecommendationsInModal(data) {
+    console.log('displayRecommendationsInModal called with:', data);
+    
+    const container = document.getElementById('modalRecommendationsContainer');
+    const section = document.getElementById('modalRecommendations');
+    
+    if (!data || data.length === 0) {
+        console.log('No data to display');
+        section.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = '';
+    console.log('Creating ', data.length, ' recommendation items');
+
+    data.forEach(rec => {
+        console.log('Adding recommendation:', rec.name);
+        const label = document.createElement('label');
+        label.className = 'addon-item';
+        label.innerHTML = `
+            <div class="addon-item-image">
+                ${rec.imageUrl ? `<img src="${rec.imageUrl}" alt="${rec.name}"/>` : '<span>🍽</span>'}
+            </div>
+            <div class="addon-item-main">
+                <div class="addon-item-top">
+                    <input type="checkbox" class="addon-checkbox" value="${rec.id}" data-name="${rec.name}" data-price="${rec.price}"/>
+                    <span class="addon-name">${rec.name}</span>
+                </div>
+                <span class="addon-price">${formatPrice(rec.price)} ₫</span>
+            </div>
+        `;
+
+        label.querySelector('input').addEventListener('change', function(e) {
+            const recId = this.value;
+            const recName = this.getAttribute('data-name');
+            const recPrice = parseFloat(this.getAttribute('data-price'));
+
+            if (this.checked) {
+                selectedAddons[recId] = { name: recName, price: recPrice, selected: true };
+            } else {
+                delete selectedAddons[recId];
+            }
+
+            updateModalTotalPrice();
+        });
+
+        container.appendChild(label);
+    });
+
+    section.style.display = 'block';
+    console.log('Recommendations section is now visible');
+}
+
+/**
+ * Cập nhật tổng tiền trong modal (kể cả số lượng)
+ */
+function updateModalTotalPrice() {
+    const quantity = parseInt(document.getElementById('modalQuantity').value) || 1;
+    let totalPrice = currentModalFoodPrice * quantity;
+    const summaryContainer = document.getElementById('modalAddonsSummary');
+    summaryContainer.innerHTML = '';
+
+    // Hiển thị giá sản phẩm x số lượng
+    if (quantity > 1) {
+        const priceRow = document.createElement('div');
+        priceRow.className = 'price-row';
+        priceRow.innerHTML = `
+            <span>Số lượng:</span>
+            <span>${quantity}</span>
+        `;
+        summaryContainer.appendChild(priceRow);
+    }
+
+    // Thêm giá của các addon được chọn
+    for (const addonId in selectedAddons) {
+        const addon = selectedAddons[addonId];
+        totalPrice += addon.price;
+
+        // Hiển thị dòng tóm tắt addon
+        const addonRow = document.createElement('div');
+        addonRow.className = 'price-row addon-row';
+        addonRow.innerHTML = `
+            <span>${addon.name}:</span>
+            <span>${formatPrice(addon.price)} ₫</span>
+        `;
+        summaryContainer.appendChild(addonRow);
+    }
+
+    document.getElementById('modalTotalPrice').textContent = formatPrice(totalPrice) + ' ₫';
+}
+
+/**
+ * Đóng modal
+ */
+function closeAddToCartModal() {
+    document.getElementById('addToCartModal').style.display = 'none';
+    document.body.style.overflow = 'auto';  // Enable scroll
+    selectedAddons = {};
+    currentModalFoodId = null;
+    document.getElementById('modalQuantity').value = 1;  // Reset quantity
+}
+
+/**
+ * Tăng số lượng
+ */
+function incrementQuantity() {
+    const qtyInput = document.getElementById('modalQuantity');
+    qtyInput.value = Math.min(parseInt(qtyInput.value) + 1, 999);
+    updateModalTotalPrice();
+}
+
+/**
+ * Giảm số lượng
+ */
+function decrementQuantity() {
+    const qtyInput = document.getElementById('modalQuantity');
+    qtyInput.value = Math.max(parseInt(qtyInput.value) - 1, 1);
+    updateModalTotalPrice();
+}
+
+/**
+ * Xác nhận thêm vào giỏ từ modal
+ */
+async function confirmAddToCart() {
+    if (!currentModalFoodId) return;
+
+    const quantity = parseInt(document.getElementById('modalQuantity').value) || 1;
+    const requests = [{ foodId: currentModalFoodId, quantity: quantity }];
+
+    for (const addonId in selectedAddons) {
+        requests.push({ foodId: addonId, quantity: 1 });
+    }
+
+    let totalItemsAdded = 0;
+    let failedCount = 0;
+    let latestCartCount = null;
+
+    for (const request of requests) {
+        const result = await addToCartProductAsync(request.foodId, request.quantity);
+        if (result && result.success) {
+            totalItemsAdded += request.quantity;
+            latestCartCount = typeof result.cartCount === 'number' ? result.cartCount : latestCartCount;
+            updateHeaderCartCount(latestCartCount);
+        } else {
+            failedCount++;
+        }
+    }
+
+    if (failedCount === 0) {
+        showToastMessage('Đã thêm ' + totalItemsAdded + ' sản phẩm vào giỏ hàng!', 'success');
+    } else if (totalItemsAdded === 0) {
+        showToastMessage('Lỗi khi thêm vào giỏ hàng', 'error');
+    } else {
+        showToastMessage('Đã thêm ' + totalItemsAdded + ' sản phẩm. (' + failedCount + ' sản phẩm lỗi)', 'error');
+    }
+
+    closeAddToCartModal();
+}
+
+/**
+ * Thêm một sản phẩm vào giỏ hàng (Async - trả về Promise)
+ */
+function addToCartProductAsync(foodId, quantity = 1) {
+    const params = new URLSearchParams();
+    params.append('foodId', foodId);
+    params.append('quantity', quantity);
+
+    return fetch('/cart/add', {
+        method: 'POST',
+        body: params,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': getCsrfToken()
+        }
+    })
+    .then(response => {
+        return response.json().then(data => ({
+            ok: response.ok,
+            ...data
+        })).catch(() => ({ ok: response.ok }));
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        return null;
+    });
+}
+
+function updateHeaderCartCount(cartCount) {
+    const headerCartCount = document.getElementById('header-cart-count');
+    if (headerCartCount && typeof cartCount === 'number') {
+        headerCartCount.textContent = cartCount;
+    }
+}
+
+function showToastMessage(message, type) {
+    if (typeof window.showToast === 'function') {
+        window.showToast(message, type);
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'site-toast ' + (type === 'success' ? 'success' : 'error');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('visible'), 10);
+    setTimeout(() => toast.classList.remove('visible'), 3500);
+    setTimeout(() => toast.remove(), 3900);
+}
+
+/**
+ * Format giá tiền theo định dạng VN (có dấu phân cách hàng nghìn)
+ */
+function formatPrice(price) {
+    if (typeof price === 'number') {
+        return price.toLocaleString('vi-VN');
+    }
+    return price;
+}
+
+/**
+ * Get CSRF token từ DOM (nếu có)
+ */
+function getCsrfToken() {
+    const token = document.querySelector('input[name="_csrf"]');
+    return token ? token.value : '';
+}
+
+// Đóng modal khi click ngoài
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('addToCartModal');
+    if (event.target === modal) {
+        closeAddToCartModal();
+    }
+});
+</script>
+</attachment>
+

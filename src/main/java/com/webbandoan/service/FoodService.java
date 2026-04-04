@@ -1,13 +1,16 @@
 package com.webbandoan.service;
 
 import com.webbandoan.entity.Food;
+import com.webbandoan.entity.FoodRecommendation;
 import com.webbandoan.repository.FoodRepository;
+import com.webbandoan.repository.FoodRecommendationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service: Food.
@@ -17,9 +20,11 @@ import java.util.List;
 public class FoodService {
 
     private final FoodRepository foodRepository;
+    private final FoodRecommendationRepository recommendationRepository;
 
-    public FoodService(FoodRepository foodRepository) {
+    public FoodService(FoodRepository foodRepository, FoodRecommendationRepository recommendationRepository) {
         this.foodRepository = foodRepository;
+        this.recommendationRepository = recommendationRepository;
     }
 
     /**
@@ -28,12 +33,12 @@ public class FoodService {
      */
     @Transactional(readOnly = true)
     public List<Food> findFeatured() {
-        return foodRepository.findTop8ByIsAvailableTrueOrderByIdDesc();
+        return foodRepository.findTop8ByIsAvailableTrueAndIsAddonFalseOrderByIdDesc();
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Food> findSimilar(Long categoryId, Long excludeId, int limit) {
-        return foodRepository.findTop6ByCategoryIdAndIsAvailableTrueAndIdNotOrderByIdDesc(categoryId, excludeId);
+        return foodRepository.findTop6ByCategoryIdAndIsAvailableTrueAndIsAddonFalseAndIdNotOrderByIdDesc(categoryId, excludeId);
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
@@ -52,7 +57,7 @@ public class FoodService {
      */
     @Transactional(readOnly = true)
     public Page<Food> findAllAvailable(Pageable pageable) {
-        return foodRepository.findByIsAvailableTrueOrderByIdDesc(pageable);
+        return foodRepository.findByIsAvailableTrueAndIsAddonFalseOrderByIdDesc(pageable);
     }
 
     /**
@@ -60,7 +65,7 @@ public class FoodService {
      */
     @Transactional(readOnly = true)
     public Page<Food> findByCategoryId(Long categoryId, Pageable pageable) {
-        return foodRepository.findByCategoryIdAndIsAvailableTrue(categoryId, pageable);
+        return foodRepository.findByCategoryIdAndIsAvailableTrueAndIsAddonFalse(categoryId, pageable);
     }
 
     /**
@@ -68,7 +73,7 @@ public class FoodService {
      */
     @Transactional(readOnly = true)
     public Page<Food> searchByName(String keyword, Pageable pageable) {
-        return foodRepository.findByNameContainingIgnoreCaseAndIsAvailableTrue(keyword, pageable);
+        return foodRepository.findByNameContainingIgnoreCaseAndIsAvailableTrueAndIsAddonFalse(keyword, pageable);
     }
 
     /**
@@ -89,6 +94,14 @@ public class FoodService {
     }
 
     /**
+     * Lấy danh sách món cho admin có phân trang.
+     */
+    @Transactional(readOnly = true)
+    public Page<Food> findAllPaged(Pageable pageable) {
+        return foodRepository.findAllByOrderByIdDesc(pageable);
+    }
+
+    /**
      * Lưu món (tạo mới hoặc cập nhật).
      */
     @Transactional
@@ -106,4 +119,44 @@ public class FoodService {
             foodRepository.deleteById(id);
         }
     }
+
+    /**
+     * Lấy danh sách gợi ý kèm theo cho một món.
+     * Ví dụ: Khi chọn "Bún bò" thì gợi ý "Bún thêm", "Thịt thêm", etc.
+     * 
+     * @param foodId ID của món chính
+     * @return Danh sách gợi ý (đã eager load Food objects)
+     */
+    @Transactional(readOnly = true)
+    public List<Food> getRecommendations(Long foodId) {
+        if (foodId == null) return List.of();
+        
+        List<FoodRecommendation> recommendations = recommendationRepository.findRecommendationsByFoodId(foodId);
+        return recommendations.stream()
+                .map(FoodRecommendation::getRecommendedFood)
+            .filter(f -> f != null && Boolean.TRUE.equals(f.getIsAvailable()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy tối đa N gợi ý kèm theo cho một món.
+     * 
+     * @param foodId ID của món chính
+     * @param limit Số lượng tối đa
+     * @return Danh sách gợi ý, tối đa N phần tử
+     */
+    @Transactional(readOnly = true)
+    public List<Food> getRecommendations(Long foodId, int limit) {
+        if (foodId == null || limit <= 0) return List.of();
+        
+        List<FoodRecommendation> recommendations = recommendationRepository.findRecommendationsByFoodId(foodId);
+        return recommendations.stream()
+                .limit(limit)
+                .map(FoodRecommendation::getRecommendedFood)
+            .filter(f -> f != null && Boolean.TRUE.equals(f.getIsAvailable()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+    
+
 }

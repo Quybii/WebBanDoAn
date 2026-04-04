@@ -1,8 +1,10 @@
 package com.webbandoan.controller;
 
 import com.webbandoan.entity.Category;
+import com.webbandoan.entity.FoodImage;
 import com.webbandoan.entity.Food;
 import com.webbandoan.service.CategoryService;
+import com.webbandoan.service.FoodImageService;
 import com.webbandoan.service.FoodService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,10 +28,12 @@ public class FoodController {
 
     private final FoodService foodService;
     private final CategoryService categoryService;
+    private final FoodImageService foodImageService;
 
-    public FoodController(FoodService foodService, CategoryService categoryService) {
+    public FoodController(FoodService foodService, CategoryService categoryService, FoodImageService foodImageService) {
         this.foodService = foodService;
         this.categoryService = categoryService;
+        this.foodImageService = foodImageService;
     }
 
     @GetMapping("/foods")
@@ -88,6 +92,9 @@ public class FoodController {
             return "redirect:/foods";
         }
         model.addAttribute("food", food);
+        List<FoodImage> foodImages = foodImageService.findByFood(food);
+        model.addAttribute("foodImages", foodImages);
+        model.addAttribute("recommendedFoods", foodService.getRecommendations(food.getId(), 6));
         // add categories/menu similar to home
         List<Category> categories = categoryService.findAll();
         model.addAttribute("categories", categories);
@@ -98,10 +105,12 @@ public class FoodController {
 
         // hot items (most ordered)
         List<Food> hot = foodService.findHot(6);
+        hot.forEach(item -> item.setImageUrl(foodImageService.findPrimaryImageUrl(item)));
         model.addAttribute("hotFoods", hot);
 
         // on-sale / deals
         List<Food> deals = foodService.findOnSale(6);
+        deals.forEach(item -> item.setImageUrl(foodImageService.findPrimaryImageUrl(item)));
         model.addAttribute("dealFoods", deals);
         if (csrfToken != null) {
             model.addAttribute("_csrf", csrfToken);

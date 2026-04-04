@@ -14,6 +14,7 @@
 
     <main class="admin-main">
         <div class="container">
+
             <div class="admin-page-header">
                 <h1 class="admin-page-title">Quản lý món ăn</h1>
                 <button type="button" class="btn btn-primary" onclick="openFoodModal()">Thêm món mới</button>
@@ -53,11 +54,18 @@
                                 <span th:if="${food.isAvailable}" class="status-badge status-completed">Đang bán</span>
                                 <span th:if="${!food.isAvailable}" class="status-badge status-cancelled">Ngừng
                                     bán</span>
+                                <span th:if="${food.isAddon}" class="status-badge" style="margin-left:6px;background:#f59e0b;color:#fff;">Món kèm</span>
                             </td>
 
                             <td class="admin-actions-cell">
                                 <button type="button" class="btn btn-small" th:data-id="${food.id}"
-                                    th:data-name="${food.name}" onclick="openFoodModal(this)">Sửa</button>
+                                    th:data-name="${food.name}"
+                                    th:data-desc="${food.description}"
+                                    th:data-price="${food.price}"
+                                    th:data-catid="${food.category != null ? food.category.id : ''}"
+                                    th:data-avail="${food.isAvailable}"
+                                    th:data-addon="${food.isAddon}"
+                                    onclick="openFoodModal(this)">Sửa</button>
 
                                 <form th:action="@{/admin/foods/{id}/delete(id=${food.id})}" method="post"
                                     class="admin-inline-form">
@@ -70,6 +78,23 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="admin-pagination" th:if="${totalPages > 1}">
+                <a th:if="${currentPage > 0}"
+                   th:href="@{/admin/foods(page=${currentPage - 1}, size=10)}"
+                   class="pagination-btn">« Trước</a>
+                <span th:if="${currentPage == 0}" class="pagination-btn disabled">« Trước</span>
+
+                <span class="pagination-info">
+                    Trang <strong th:text="${currentPage + 1}">1</strong> / <strong th:text="${totalPages}">1</strong>
+                </span>
+
+                <a th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/admin/foods(page=${currentPage + 1}, size=10)}"
+                   class="pagination-btn">Sau »</a>
+                <span th:if="${currentPage >= totalPages - 1}" class="pagination-btn disabled">Sau »</span>
+            </div>
+
         </div>
     </main>
 
@@ -114,9 +139,19 @@
                     <input type="file" id="images" name="images" multiple accept="image/*" class="form-control" />
                 </div>
 
+                <div class="image-preview-section">
+                    <label>Ảnh hiện có / xem trước</label>
+                    <div id="imagePreviewGrid" class="image-preview-grid"></div>
+                </div>
+
                 <div class="form-group checkbox-group">
                     <input type="checkbox" id="isAvailable" name="isAvailable" value="true" checked />
                     <label for="isAvailable">Đang bán</label>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="isAddon" name="isAddon" value="true" />
+                    <label for="isAddon">Món kèm theo </label>
                 </div>
 
                 <div class="modal-footer">
@@ -133,8 +168,14 @@
         const modal = document.getElementById('foodModal');
         const foodForm = modal.querySelector('form');
         const modalTitle = document.getElementById('modalTitle');
+        const imagesInput = document.getElementById('images');
+        const imagePreviewGrid = document.getElementById('imagePreviewGrid');
+        let selectedFoodImageFiles = [];
+        let selectedFoodImageUrls = [];
+        let existingFoodImages = [];
 
         function openFoodModal(btn = null) {
+            clearImagePreviewState();
             if (btn) {
                 // Trường hợp SỬA
                 modalTitle.innerText = "Chỉnh sửa món ăn";
@@ -144,23 +185,179 @@
                 document.getElementById('price').value = btn.getAttribute('data-price');
                 document.getElementById('categoryId').value = btn.getAttribute('data-catid');
                 document.getElementById('isAvailable').checked = btn.getAttribute('data-avail') === 'true';
+                document.getElementById('isAddon').checked = btn.getAttribute('data-addon') === 'true';
+                loadFoodImages(btn.getAttribute('data-id'));
             } else {
                 // Trường hợp THÊM MỚI
                 modalTitle.innerText = "Thêm món mới";
                 foodForm.reset();
                 document.getElementById('foodId').value = "";
+                document.getElementById('isAvailable').checked = true;
+                document.getElementById('isAddon').checked = false;
             }
             modal.classList.add('active');
         }
 
         function closeFoodModal() {
             modal.classList.remove('active');
+            clearImagePreviewState();
         }
 
-        // Đóng khi click ngoài vùng modal
-        window.onclick = function (event) {
-            if (event.target == modal) closeFoodModal();
+        function clearImagePreviewState() {
+            selectedFoodImageUrls.forEach(url => URL.revokeObjectURL(url));
+            selectedFoodImageFiles = [];
+            selectedFoodImageUrls = [];
+            existingFoodImages = [];
+            if (imagesInput) {
+                imagesInput.value = '';
+            }
+            renderImagePreviewGrid();
         }
+
+        function syncFileInputFromSelection() {
+            const dataTransfer = new DataTransfer();
+            selectedFoodImageFiles.forEach(file => dataTransfer.items.add(file));
+            imagesInput.files = dataTransfer.files;
+        }
+
+        function renderImagePreviewGrid() {
+            if (!imagePreviewGrid) return;
+
+            selectedFoodImageUrls.forEach(url => URL.revokeObjectURL(url));
+            selectedFoodImageUrls = [];
+            imagePreviewGrid.innerHTML = '';
+
+            existingFoodImages.forEach(image => {
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+                item.innerHTML = `
+                    <img src="${image.imageUrl}" alt="Ảnh món ăn" />
+                    ${image.isMain ? '<span class="image-preview-badge">Ảnh chính</span>' : ''}
+                    <button type="button" class="image-preview-remove" aria-label="Xóa ảnh" title="Xóa ảnh">&times;</button>
+                `;
+                item.querySelector('.image-preview-remove').addEventListener('click', function () {
+                    deleteFoodImage(image.id);
+                });
+                imagePreviewGrid.appendChild(item);
+            });
+
+            selectedFoodImageFiles.forEach((file, index) => {
+                const objectUrl = URL.createObjectURL(file);
+                selectedFoodImageUrls[index] = objectUrl;
+
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+                item.innerHTML = `
+                    <img src="${objectUrl}" alt="Ảnh xem trước" />
+                    <button type="button" class="image-preview-remove" aria-label="Bỏ ảnh" title="Bỏ ảnh">&times;</button>
+                `;
+                item.querySelector('.image-preview-remove').addEventListener('click', function () {
+                    removeSelectedImage(index);
+                });
+                imagePreviewGrid.appendChild(item);
+            });
+        }
+
+        function removeSelectedImage(index) {
+            if (selectedFoodImageUrls[index]) {
+                URL.revokeObjectURL(selectedFoodImageUrls[index]);
+            }
+            selectedFoodImageFiles.splice(index, 1);
+            selectedFoodImageUrls.splice(index, 1);
+            syncFileInputFromSelection();
+            renderImagePreviewGrid();
+        }
+
+        function loadFoodImages(foodId) {
+            existingFoodImages = [];
+            if (!foodId) return;
+
+            fetch(`/admin/foods/${foodId}/images`, {
+                headers: {
+                    'X-CSRF-TOKEN': getAdminCsrfToken()
+                }
+            })
+                .then(response => response.ok ? response.json() : Promise.reject(response.status))
+                .then(data => {
+                    existingFoodImages = Array.isArray(data) ? data : [];
+                    renderImagePreviewGrid();
+                })
+                .catch(error => {
+                    console.error('Failed to load food images:', error);
+                    showAdminToast('Không tải được hình ảnh hiện có.', 'error');
+                });
+        }
+
+        function deleteFoodImage(imageId) {
+            if (!imageId) return;
+            if (!confirm('Xóa ảnh này?')) return;
+
+            fetch(`/admin/foods/images/${imageId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getAdminCsrfToken()
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                    const foodId = document.getElementById('foodId').value;
+                    if (foodId) {
+                        refreshFoodImages(foodId);
+                    }
+                    showAdminToast('Đã xóa hình ảnh.', 'success');
+                })
+                .catch(error => {
+                    console.error('Delete image failed:', error);
+                    showAdminToast('Xóa hình ảnh thất bại.', 'error');
+                });
+        }
+
+        function getAdminCsrfToken() {
+            const csrfInput = document.querySelector('input[name="_csrf"]');
+            return csrfInput ? csrfInput.value : '';
+        }
+
+        function showAdminToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = 'site-toast ' + (type === 'success' ? 'success' : 'error');
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('visible'), 10);
+            setTimeout(() => toast.classList.remove('visible'), 3500);
+            setTimeout(() => toast.remove(), 3900);
+        }
+
+        function refreshFoodImages(foodId) {
+            if (!foodId) return;
+
+            fetch(`/admin/foods/${foodId}/images`, {
+                headers: {
+                    'X-CSRF-TOKEN': getAdminCsrfToken()
+                }
+            })
+                .then(response => response.ok ? response.json() : Promise.reject(response.status))
+                .then(data => {
+                    existingFoodImages = Array.isArray(data) ? data : [];
+                    renderImagePreviewGrid();
+                })
+                .catch(error => {
+                    console.error('Failed to refresh food images:', error);
+                });
+        }
+
+        imagesInput.addEventListener('change', function () {
+            selectedFoodImageFiles = Array.from(this.files || []);
+            selectedFoodImageUrls.forEach(url => URL.revokeObjectURL(url));
+            selectedFoodImageUrls = [];
+            renderImagePreviewGrid();
+        });
+
+        // Đóng khi click ngoài vùng modal
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) closeFoodModal();
+        });
     </script>
 </body>
 
