@@ -52,7 +52,6 @@ com\webbandoan\config\package-info.class
 com\webbandoan\repository\OrderRepository.class
 com\webbandoan\service\FoodService.class
 com\webbandoan\dto\MomoExecuteResponse.class
-com\webbandoan\controller\api\FoodApiController.class
 com\webbandoan\config\MomoProperties.class
 com\webbandoan\entity\FoodRecommendation.class
 com\webbandoan\service\OrderService.class

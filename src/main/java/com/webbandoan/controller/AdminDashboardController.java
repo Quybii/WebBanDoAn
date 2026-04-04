@@ -8,8 +8,10 @@ import com.webbandoan.service.ShopService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.YearMonth;
@@ -68,8 +70,8 @@ public class AdminDashboardController {
         }
     }
 
-    @org.springframework.web.bind.annotation.PostMapping("/shop/toggle")
-    public String toggleShop(@org.springframework.web.bind.annotation.RequestParam boolean open, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+    @PostMapping("/shop/toggle")
+    public String toggleShop(@RequestParam boolean open, RedirectAttributes redirectAttributes) {
         shopService.setOpen(open);
         redirectAttributes.addFlashAttribute("successMessage", open ? "Đã mở cửa nhận đơn." : "Đã tạm đóng cửa, không nhận đơn.");
         return "redirect:/admin";
