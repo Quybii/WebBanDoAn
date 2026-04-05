@@ -56,8 +56,15 @@
                             </td>
 
                             <td class="admin-actions-cell">
-                                <button type="button" class="btn btn-small" th:data-id="${food.id}"
-                                    th:data-name="${food.name}" onclick="openFoodModal(this)">Sửa</button>
+                                <button type="button" class="btn btn-small" 
+                                        th:data-id="${food.id}"
+                                        th:data-name="${food.name}" 
+                                        th:data-desc="${food.description}"
+                                        th:data-price="${food.price}"
+                                        th:data-catid="${food.category != null ? food.category.id : ''}"
+                                        th:data-avail="${food.isAvailable}"
+                                        onclick="openFoodModal(this)">Sửa
+                                </button>
 
                                 <form th:action="@{/admin/foods/{id}/delete(id=${food.id})}" method="post"
                                     class="admin-inline-form">
