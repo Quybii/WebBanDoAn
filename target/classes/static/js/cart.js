@@ -1,27 +1,43 @@
-/* cart.js - handles AJAX add-to-cart and header count update */
+/* cart.js - handles AJAX add-to-cart, buy-now and header count update */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Delegate click for add-to-cart buttons
+    // Lắng nghe sự kiện click trên toàn body
     document.body.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-add-cart-ajax');
-        if (!btn) return;
-        e.preventDefault();
-        const foodId = btn.getAttribute('data-food-id');
-        let qty = 1;
-        const qtyInput = document.getElementById('food-quantity');
-        // Kiểm tra xem nút được bấm có phải là nút trong trang chi tiết không
-        if (qtyInput && btn.id === 'btn-add-cart-detail') {
-            qty = qtyInput.value; // Lấy số lượng thực tế từ ô input
-        } else {
-            qty = btn.getAttribute('data-quantity') || 1;
+        
+        // 1. Nếu click vào nút "Thêm vào giỏ"
+        const btnAdd = e.target.closest('.btn-add-cart-ajax');
+        if (btnAdd) {
+            e.preventDefault();
+            const foodId = btnAdd.getAttribute('data-food-id');
+            const qty = getQuantityForButton(btnAdd);
+            addToCartAjax(foodId, qty, btnAdd, false); // false = không chuyển hướng
+            return;
         }
-        addToCartAjax(foodId, qty, btn);
+
+        // 2. Nếu click vào nút "Mua ngay"
+        const btnBuy = e.target.closest('.btn-buy-now-ajax');
+        if (btnBuy) {
+            e.preventDefault();
+            const foodId = btnBuy.getAttribute('data-food-id');
+            const qty = getQuantityForButton(btnBuy);
+            addToCartAjax(foodId, qty, btnBuy, true); // true = chuyển hướng sang /cart
+            return;
+        }
     });
 });
 
-function addToCartAjax(foodId, quantity, btn) {
+// Hàm dùng chung để lấy số lượng từ ô input (trang chi tiết) hoặc từ data (trang danh sách)
+function getQuantityForButton(btn) {
+    const qtyInput = document.getElementById('food-quantity');
+    if (qtyInput && (btn.id === 'btn-add-cart-detail' || btn.id === 'btn-buy-now-detail')) {
+        return qtyInput.value;
+    }
+    return btn.getAttribute('data-quantity') || 1;
+}
+
+// Hàm gọi API
+function addToCartAjax(foodId, quantity, btn, isBuyNow) {
     if (!window._csrf || !window._csrf.token) {
-        // fallback: navigate to add URL
         window.location.href = '/cart/add/' + foodId + '?redirectTo=cart';
         return;
     }
@@ -36,25 +52,33 @@ function addToCartAjax(foodId, quantity, btn) {
         },
         body: new URLSearchParams({foodId: foodId, quantity: quantity})
     })
-        .then(res => res.json())
-        .then(data => {
-            btn.classList.remove('loading');
-            if (data && data.success) {
-                // update header count
+    .then(res => res.json())
+    .then(data => {
+        btn.classList.remove('loading');
+        if (data && data.success) {
+            
+            // LOGIC QUAN TRỌNG NHẤT Ở ĐÂY:
+            if (isBuyNow) {
+                // Nếu là Mua ngay -> Bay thẳng sang trang giỏ hàng
+                window.location.href = '/cart'; 
+            } else {
+                // Nếu là Thêm vào giỏ -> Chỉ cập nhật số trên góc và hiện thông báo
                 const cnt = document.getElementById('header-cart-count');
                 if (cnt) cnt.textContent = data.cartCount;
                 showToast(data.message || 'Đã thêm vào giỏ.', 'success');
-            } else if (data && data.message) {
-                showToast(data.message, 'error');
-            } else {
-                showToast('Không thể thêm vào giỏ.', 'error');
             }
-        })
-        .catch(err => {
-            btn.classList.remove('loading');
-            showToast('Lỗi mạng, thử lại.', 'error');
-            console.error(err);
-        });
+
+        } else if (data && data.message) {
+            showToast(data.message, 'error');
+        } else {
+            showToast('Không thể thêm vào giỏ.', 'error');
+        }
+    })
+    .catch(err => {
+        btn.classList.remove('loading');
+        showToast('Lỗi mạng, thử lại.', 'error');
+        console.error(err);
+    });
 }
 
 function showToast(message, type) {

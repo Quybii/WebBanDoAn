@@ -60,6 +60,7 @@
                         </div>
                     </div>
                     <div class="food-detail-actions">
+                        <button type="button" id="btn-buy-now-detail" class="btn btn-danger btn-add-cart-large btn-buy-now-ajax" th:attr="data-food-id=${food.id}">Mua ngay</button>
                         <button type="button" id="btn-add-cart-detail" class="btn btn-primary btn-add-cart-large btn-add-cart-ajax" th:attr="data-food-id=${food.id}">Thêm vào giỏ</button>
                         <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua sắm</a>
                     </div>

@@ -583,3 +583,15 @@
     gap: 15px;
     flex-wrap: wrap;
 }
+/* Nút Mua ngay nổi bật */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: white;
+}
