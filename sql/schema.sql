@@ -1,9 +1,3 @@
--- =====================================================
--- WEBBANDOAN - SCRIPT TẠO BẢNG DATABASE (SQL SERVER)
--- Bước 1: Thiết kế Database
--- =====================================================
-
--- Xóa bảng theo thứ tự ngược phụ thuộc (tránh lỗi FK)
 IF OBJECT_ID('dbo.payment_transactions', 'U') IS NOT NULL DROP TABLE dbo.payment_transactions;
 IF OBJECT_ID('dbo.cart_items', 'U') IS NOT NULL DROP TABLE dbo.cart_items;
 IF OBJECT_ID('dbo.order_details', 'U') IS NOT NULL DROP TABLE dbo.order_details;
@@ -14,17 +8,11 @@ IF OBJECT_ID('dbo.users', 'U') IS NOT NULL DROP TABLE dbo.users;
 IF OBJECT_ID('dbo.roles', 'U') IS NOT NULL DROP TABLE dbo.roles;
 IF OBJECT_ID('dbo.payment_methods', 'U') IS NOT NULL DROP TABLE dbo.payment_methods;
 
--- -----------------------------------------------------
--- 1. BẢNG roles (Vai trò: USER, ADMIN)
--- -----------------------------------------------------
 CREATE TABLE roles (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(50) NOT NULL UNIQUE
 );
 
--- Bảng payment_methods (Phương thức thanh toán)
--- COD: Thanh toán khi nhận hàng
--- MOMO: Chuyển khoản Momo
 CREATE TABLE payment_methods (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     code NVARCHAR(50) NOT NULL UNIQUE,
@@ -33,13 +21,6 @@ CREATE TABLE payment_methods (
     is_active BIT NOT NULL DEFAULT 1
 );
 
--- INSERT INTO roles (Vai trò: USER, ADMIN)
--- INSERT INTO payment_methods
-
--- -----------------------------------------------------
--- 2. BẢNG users (Người dùng)
--- Quan hệ: Many users -> One role (ManyToOne với roles)
--- -----------------------------------------------------
 CREATE TABLE users (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     username NVARCHAR(100) NOT NULL UNIQUE,
@@ -54,9 +35,6 @@ CREATE TABLE users (
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
--- -----------------------------------------------------
--- 3. BẢNG categories (Danh mục món ăn)
--- -----------------------------------------------------
 CREATE TABLE categories (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(200) NOT NULL,
@@ -64,10 +42,6 @@ CREATE TABLE categories (
     image_url NVARCHAR(500)
 );
 
--- -----------------------------------------------------
--- 4. BẢNG foods (Món ăn)
--- Quan hệ: Many foods -> One category (ManyToOne với categories)
--- -----------------------------------------------------
 CREATE TABLE foods (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(200) NOT NULL,
@@ -81,11 +55,6 @@ CREATE TABLE foods (
     CONSTRAINT fk_foods_category FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
--- -----------------------------------------------------
--- 5. BẢNG orders (Đơn hàng)
--- Quan hệ: Many orders -> One user (ManyToOne với users)
---          Many orders -> One payment_method (ManyToOne với payment_methods)
--- -----------------------------------------------------
 CREATE TABLE orders (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -102,11 +71,6 @@ CREATE TABLE orders (
     CONSTRAINT fk_orders_payment_method FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id)
 );
 
--- -----------------------------------------------------
--- 6. BẢNG order_details (Chi tiết đơn hàng)
--- Quan hệ: Many order_details -> One order (ManyToOne)
---          Many order_details -> One food (ManyToOne)
--- -----------------------------------------------------
 CREATE TABLE order_details (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     order_id BIGINT NOT NULL,
@@ -118,9 +82,6 @@ CREATE TABLE order_details (
     CONSTRAINT fk_order_details_food FOREIGN KEY (food_id) REFERENCES foods(id)
 );
 
--- Bảng payment_transactions (Lưu thông tin giao dịch thanh toán - dành cho Momo)
--- Tương tự bảng MomoInfor cũ của bạn
--- Một đơn hàng có thể có nhiều giao dịch (nếu thanh toán nhiều lần/retry)
 CREATE TABLE payment_transactions (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     order_id BIGINT NOT NULL,
@@ -136,12 +97,6 @@ CREATE TABLE payment_transactions (
     CONSTRAINT fk_payment_trans_order FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
--- -----------------------------------------------------
--- 7. BẢNG cart_items (Giỏ hàng)
--- Quan hệ: Many cart_items -> One user (ManyToOne)
---          Many cart_items -> One food (ManyToOne)
--- Mỗi user chỉ có tối đa 1 dòng cho mỗi món (unique user_id + food_id)
--- -----------------------------------------------------
 CREATE TABLE cart_items (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -154,13 +109,12 @@ CREATE TABLE cart_items (
     CONSTRAINT fk_cart_items_parent FOREIGN KEY (parent_cart_item_id) REFERENCES cart_items(id)
 );
 
--- Bảng food_recommendations (Gợi ý kèm theo khi đặt hàng)
--- Ví dụ: Khi chọn "Bún bò" thì gợi ý "Bún thêm", "Thịt thêm", "Nước chấm"
+
 CREATE TABLE food_recommendations (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    food_id BIGINT NOT NULL,                    -- Món chính (ví dụ: Bún bò)
-    recommended_food_id BIGINT NOT NULL,        -- Món được gợi ý (ví dụ: Bún thêm)
-    priority INT NOT NULL DEFAULT 1,             -- Thứ tự ưu tiên hiển thị (1 = cao nhất)
+    food_id BIGINT NOT NULL,                    
+    recommended_food_id BIGINT NOT NULL,        
+    priority INT NOT NULL DEFAULT 1,             
     CONSTRAINT fk_food_rec_food FOREIGN KEY (food_id) REFERENCES foods(id),
     CONSTRAINT fk_food_rec_recommended FOREIGN KEY (recommended_food_id) REFERENCES foods(id),
     CONSTRAINT uq_food_recommendation UNIQUE (food_id, recommended_food_id)
@@ -168,8 +122,6 @@ CREATE TABLE food_recommendations (
 
 CREATE INDEX idx_food_recommendations_food_id ON food_recommendations(food_id);
 
--- Bảng food_images (Ảnh cho món ăn) - hỗ trợ nhiều ảnh per món
--- Quan hệ: Many food_images -> One food (ManyToOne với foods)
 CREATE TABLE food_images (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     food_id BIGINT NOT NULL,
@@ -180,7 +132,6 @@ CREATE TABLE food_images (
 
 CREATE INDEX idx_food_images_food_id ON food_images(food_id);
 
--- Bảng food_reviews (Đánh giá sản phẩm)
 CREATE TABLE food_reviews (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -211,9 +162,6 @@ CREATE INDEX idx_food_review_images_review_id ON food_review_images(review_id);
 
 
 
--- 
--- ========== DỮ LIỆU MẪU (SEED DATA) - THEO THỨ TỰ TỪ TRÊN XUỐNG DƯỚI ==========
--- 
 -- BỨC 1: Tạo Roles (vai trò)
 INSERT INTO roles (name) VALUES (N'USER'), (N'ADMIN');
 
@@ -443,11 +391,4 @@ BEGIN
     CREATE INDEX idx_food_review_images_review_id ON food_review_images(review_id);
 END
 
--- ========== HOÀN THÀNH SETUP ==========
-PRINT N'✓ Đã tạo xong tất cả các bảng';
-PRINT N'✓ Dữ liệu mẫu: 4 users (1 admin, 3 users), 5 categories, 15 foods';
-PRINT N'✓ Đã tạo 4 đơn hàng mẫu với chi tiết đơn hàng';
-PRINT N'✓ Phương thức thanh toán: COD (id=1), MOMO (id=2)';
-PRINT N'✓ Gợi ý kèm theo (recommendations) đã được cấu hình';
-PRINT N'✓ Sẵn sàng để chạy ứng dụng!';
 
