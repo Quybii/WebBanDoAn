@@ -20,6 +20,9 @@
             <span th:text="${food.name}">Tên món</span>
         </div>
 
+        <p th:if="${successMessage}" class="detail-message success" th:text="${successMessage}">Thành công.</p>
+        <p th:if="${errorMessage}" class="detail-message error" th:text="${errorMessage}">Lỗi.</p>
+
         <div class="food-detail" th:if="${food != null}">
             <div class="food-detail-image-panel">
                 <div class="food-detail-image">
@@ -61,6 +64,107 @@
             </div>
         </div>
 
+        <section class="food-review-section">
+            <div class="section-header">
+                <h2 class="section-title">Đánh giá sản phẩm</h2>
+                <p class="section-subtitle">
+                    <span th:text="${reviewCount}">0</span> đánh giá •
+                    Điểm trung bình:
+                    <strong th:text="${reviewCount != null and reviewCount > 0 ? averageRating : 'Chưa có'}">Chưa có</strong>
+                </p>
+            </div>
+
+            <div class="review-purchase-note" th:if="${currentUser == null}">
+                <p>Đăng nhập và hoàn tất đơn hàng chứa sản phẩm này để có thể đánh giá.</p>
+                <a th:href="@{/login}" class="btn btn-primary">Đăng nhập</a>
+            </div>
+
+            <div class="review-purchase-note" th:if="${currentUser != null and !canReview}">
+                <p>Chỉ khách hàng đã mua và đơn ở trạng thái hoàn tất mới được đánh giá sản phẩm này.</p>
+            </div>
+
+            <div class="review-purchase-note" th:if="${currentReview != null}">
+                <p>Bạn đã gửi đánh giá cho sản phẩm này. Bạn có thể chỉnh sửa bằng nút bên dưới bài đánh giá của mình.</p>
+            </div>
+
+            <div class="review-create-block" th:if="${canReview and currentUser != null and currentReview == null}">
+                <form th:action="@{/foods/{id}/reviews(id=${food.id})}"
+                      method="post"
+                      enctype="multipart/form-data"
+                      class="review-form">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="review-form-row">
+                        <label class="review-label">Số sao</label>
+                        <div class="star-rating-input">
+                            <input type="radio" id="rating5" name="rating" value="5" required/>
+                            <label for="rating5">★</label>
+                            <input type="radio" id="rating4" name="rating" value="4"/>
+                            <label for="rating4">★</label>
+                            <input type="radio" id="rating3" name="rating" value="3"/>
+                            <label for="rating3">★</label>
+                            <input type="radio" id="rating2" name="rating" value="2"/>
+                            <label for="rating2">★</label>
+                            <input type="radio" id="rating1" name="rating" value="1"/>
+                            <label for="rating1">★</label>
+                        </div>
+                    </div>
+                    <div class="review-form-row">
+                        <label for="reviewComment" class="review-label">Bình luận</label>
+                        <textarea id="reviewComment" name="comment" rows="4" class="review-textarea" placeholder="Chia sẻ cảm nhận của bạn"></textarea>
+                    </div>
+                    <div class="review-form-row">
+                        <label for="reviewImages" class="review-label">Hình ảnh</label>
+                        <input type="file" id="reviewImages" name="images" class="review-file" accept="image/*" multiple/>
+                        <p class="review-hint">Bạn có thể chọn nhiều ảnh, xem trước trước khi gửi.</p>
+                    </div>
+                    <div class="review-image-edit-section">
+                        <label class="review-label">Xem trước ảnh mới</label>
+                        <div id="reviewImagePreviewGrid" class="review-image-grid review-image-grid-empty">
+                            <p class="review-empty">Chưa chọn ảnh mới.</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                </form>
+            </div>
+
+            <div class="review-list" th:if="${foodReviews != null and !foodReviews.isEmpty()}">
+                <article class="review-card" th:each="review : ${foodReviews}">
+                    <div class="review-card-header">
+                        <div>
+                            <h3 th:text="${review.user != null and review.user.fullName != null and !review.user.fullName.isEmpty() ? review.user.fullName : review.user.username}">Người dùng</h3>
+                            <p th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</p>
+                        </div>
+                        <div class="review-rating-display">
+                            <span th:each="star : ${#numbers.sequence(1, 5)}" th:text="${star <= review.rating ? '★' : '☆'}">★</span>
+                        </div>
+                    </div>
+                    <div class="review-owner-actions" th:if="${currentUser != null and review.user != null and review.user.id == currentUser.id}">
+                        <button type="button" class="btn btn-secondary btn-review-edit"
+                                th:attr="data-review-id=${review.id}, data-rating=${review.rating}, data-comment=${review.comment != null ? review.comment : ''}"
+                                onclick="openEditReviewModal(this)">Sửa</button>
+                        <form th:action="@{/foods/{foodId}/reviews/{reviewId}/delete(foodId=${food.id}, reviewId=${review.id})}" method="post" class="review-delete-form">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn btn-danger btn-review-delete" onclick="return confirm('Xóa đánh giá này?')">Xóa</button>
+                        </form>
+                    </div>
+                    <p class="review-comment" th:text="${review.comment != null and !review.comment.isEmpty() ? review.comment : 'Không có bình luận.'}">Bình luận</p>
+                    <div class="review-images" th:if="${review.images != null and !review.images.isEmpty()}">
+                        <button type="button"
+                                class="review-image-thumb"
+                                th:each="reviewImage : ${review.images}"
+                                th:attr="data-image=${reviewImage.imageUrl}, data-alt=${food.name}"
+                                onclick="openFoodImageViewer(this)">
+                            <img th:src="${reviewImage.imageUrl}" th:alt="${food.name}"/>
+                        </button>
+                    </div>
+                </article>
+            </div>
+
+            <div class="review-empty" th:if="${foodReviews == null or foodReviews.isEmpty()}">
+                <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+            </div>
+        </section>
+
         <!-- Hot items -->
         <section class="section-title">Món Hot</section>
         <div class="carousel-row" th:if="${hotFoods != null and !hotFoods.isEmpty()}">
@@ -79,25 +183,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Deals / On Sale -->
-        <section class="section-title">Ưu đãi</section>
-        <div class="carousel-row" th:if="${dealFoods != null and !dealFoods.isEmpty()}">
-            <div class="carousel-track">
-                <div class="card" th:each="d : ${dealFoods}">
-                    <a th:href="@{/foods/{id}(id=${d.id})}">
-                        <div class="card-image-wrap">
-                            <img th:if="${d.imageUrl != null and !d.imageUrl.isEmpty()}" th:src="${d.imageUrl}" th:alt="${d.name}" />
-                            <div th:if="${d.imageUrl == null or d.imageUrl.isEmpty()}" class="card-image-placeholder">🍽</div>
-                        </div>
-                        <div class="card-body">
-                            <h4 th:text="${d.name}">Tên</h4>
-                            <p class="price" th:text="${#numbers.formatDecimal(d.price,1,'COMMA',0,'POINT') + ' ₫'}">0 ₫</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
+        
     </div>
 </main>
 
@@ -106,6 +192,60 @@
         <button type="button" class="food-image-viewer-close" onclick="closeFoodImageViewer()">&times;</button>
         <img id="foodImageViewerImg" src="" alt="Hình món ăn phóng to"/>
         <p id="foodImageViewerCaption"></p>
+    </div>
+</div>
+
+<div id="reviewEditModal" class="modal" style="display: none;">
+    <div class="modal-content review-edit-modal-content">
+        <span class="modal-close" onclick="closeReviewEditModal()">&times;</span>
+        <h3 class="modal-title">Chỉnh sửa đánh giá</h3>
+        <form th:action="@{/foods/{id}/reviews(id=${food.id})}" method="post" enctype="multipart/form-data" class="review-form review-modal-form" id="reviewEditForm">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" name="reviewId" id="editReviewId" th:value="${currentReview != null ? currentReview.id : ''}"/>
+            <div class="review-form-row">
+                <label class="review-label">Số sao</label>
+                <div class="star-rating-input">
+                    <input type="radio" id="editRating5" name="rating" value="5"/>
+                    <label for="editRating5">★</label>
+                    <input type="radio" id="editRating4" name="rating" value="4"/>
+                    <label for="editRating4">★</label>
+                    <input type="radio" id="editRating3" name="rating" value="3"/>
+                    <label for="editRating3">★</label>
+                    <input type="radio" id="editRating2" name="rating" value="2"/>
+                    <label for="editRating2">★</label>
+                    <input type="radio" id="editRating1" name="rating" value="1"/>
+                    <label for="editRating1">★</label>
+                </div>
+            </div>
+            <div class="review-form-row">
+                <label for="editReviewComment" class="review-label">Bình luận</label>
+                <textarea id="editReviewComment" name="comment" rows="4" class="review-textarea" placeholder="Chia sẻ cảm nhận của bạn"></textarea>
+            </div>
+            <div class="review-form-row">
+                <label for="editReviewImages" class="review-label">Hình ảnh mới</label>
+                <input type="file" id="editReviewImages" name="images" class="review-file" accept="image/*" multiple/>
+                <p class="review-hint">Có thể thêm ảnh mới, xem trước trước khi lưu.</p>
+            </div>
+            <div class="review-image-edit-section" th:if="${currentReview != null and currentReview.images != null and !currentReview.images.isEmpty()}">
+                <label class="review-label">Ảnh hiện tại</label>
+                <div id="editReviewCurrentImageGrid" class="review-image-grid">
+                    <div class="review-image-item" th:each="reviewImage : ${currentReview.images}" th:attr="data-review-image-id=${reviewImage.id}">
+                        <img th:src="${reviewImage.imageUrl}" th:alt="${food.name}"/>
+                        <button type="button" class="review-image-remove" title="Xóa ảnh" aria-label="Xóa ảnh" onclick="removeExistingReviewImage(this)">&times;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="review-image-edit-section">
+                <label class="review-label">Xem trước ảnh mới</label>
+                <div id="editReviewImagePreviewGrid" class="review-image-grid review-image-grid-empty">
+                    <p class="review-empty">Chưa chọn ảnh mới.</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeReviewEditModal()">Hủy</button>
+                <button type="submit" class="btn btn-primary">Lưu đánh giá</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -169,10 +309,184 @@ let currentModalFoodId = null;
 let currentModalFoodPrice = 0;
 let selectedAddons = {};  // { addonId: { name, price, selected: true/false } }
 let recommendations = [];
+let reviewSelectedFiles = [];
+let editReviewSelectedFiles = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded, ready to load recommendations on modal open');
+    setupReviewImagePreview();
+    setupEditReviewImagePreview();
 });
+
+function setupReviewImagePreview() {
+    const reviewImagesInput = document.getElementById('reviewImages');
+    if (!reviewImagesInput) {
+        return;
+    }
+
+    reviewImagesInput.addEventListener('change', function() {
+        reviewSelectedFiles = Array.from(this.files || []);
+        renderReviewSelectedImagePreviews();
+    });
+
+    renderReviewSelectedImagePreviews();
+}
+
+function renderReviewSelectedImagePreviews() {
+    const previewGrid = document.getElementById('reviewImagePreviewGrid');
+    const fileInput = document.getElementById('reviewImages');
+    if (!previewGrid || !fileInput) {
+        return;
+    }
+
+    if (!reviewSelectedFiles.length) {
+        previewGrid.innerHTML = '<p class="review-empty">Chưa chọn ảnh mới.</p>';
+        previewGrid.classList.add('review-image-grid-empty');
+        return;
+    }
+
+    previewGrid.classList.remove('review-image-grid-empty');
+    previewGrid.innerHTML = '';
+
+    reviewSelectedFiles.forEach((file, index) => {
+        const previewUrl = URL.createObjectURL(file);
+        const item = document.createElement('div');
+        item.className = 'review-image-item';
+        item.innerHTML = `
+            <img src="${previewUrl}" alt="${file.name}"/>
+            <button type="button" class="review-image-remove" title="Bỏ ảnh" aria-label="Bỏ ảnh">&times;</button>
+        `;
+
+        item.querySelector('.review-image-remove').addEventListener('click', function() {
+            removeSelectedReviewImage(index);
+        });
+
+        previewGrid.appendChild(item);
+    });
+}
+
+function removeSelectedReviewImage(index) {
+    reviewSelectedFiles.splice(index, 1);
+    const fileInput = document.getElementById('reviewImages');
+    const dataTransfer = new DataTransfer();
+    reviewSelectedFiles.forEach(file => dataTransfer.items.add(file));
+    fileInput.files = dataTransfer.files;
+    renderReviewSelectedImagePreviews();
+}
+
+function removeExistingReviewImage(button) {
+    const item = button.closest('.review-image-item');
+    if (!item) {
+        return;
+    }
+
+    const imageId = item.getAttribute('data-review-image-id');
+    const form = document.getElementById('reviewEditForm');
+    if (form && imageId) {
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'removeImageIds';
+        hiddenInput.value = imageId;
+        form.appendChild(hiddenInput);
+    }
+
+    item.remove();
+
+    const currentGrid = document.getElementById('editReviewCurrentImageGrid') || document.getElementById('reviewCurrentImageGrid');
+    if (currentGrid && !currentGrid.querySelector('.review-image-item')) {
+        currentGrid.innerHTML = '<p class="review-empty">Không còn ảnh hiện tại.</p>';
+        currentGrid.classList.add('review-image-grid-empty');
+    }
+}
+
+function setupEditReviewImagePreview() {
+    const editImagesInput = document.getElementById('editReviewImages');
+    if (!editImagesInput) {
+        return;
+    }
+
+    editImagesInput.addEventListener('change', function() {
+        editReviewSelectedFiles = Array.from(this.files || []);
+        renderEditReviewSelectedImagePreviews();
+    });
+
+    renderEditReviewSelectedImagePreviews();
+}
+
+function renderEditReviewSelectedImagePreviews() {
+    const previewGrid = document.getElementById('editReviewImagePreviewGrid');
+    const fileInput = document.getElementById('editReviewImages');
+    if (!previewGrid || !fileInput) {
+        return;
+    }
+
+    if (!editReviewSelectedFiles.length) {
+        previewGrid.innerHTML = '<p class="review-empty">Chưa chọn ảnh mới.</p>';
+        previewGrid.classList.add('review-image-grid-empty');
+        return;
+    }
+
+    previewGrid.classList.remove('review-image-grid-empty');
+    previewGrid.innerHTML = '';
+
+    editReviewSelectedFiles.forEach((file, index) => {
+        const previewUrl = URL.createObjectURL(file);
+        const item = document.createElement('div');
+        item.className = 'review-image-item';
+        item.innerHTML = `
+            <img src="${previewUrl}" alt="${file.name}"/>
+            <button type="button" class="review-image-remove" title="Bỏ ảnh" aria-label="Bỏ ảnh">&times;</button>
+        `;
+
+        item.querySelector('.review-image-remove').addEventListener('click', function() {
+            removeSelectedEditReviewImage(index);
+        });
+
+        previewGrid.appendChild(item);
+    });
+}
+
+function removeSelectedEditReviewImage(index) {
+    editReviewSelectedFiles.splice(index, 1);
+    const fileInput = document.getElementById('editReviewImages');
+    const dataTransfer = new DataTransfer();
+    editReviewSelectedFiles.forEach(file => dataTransfer.items.add(file));
+    fileInput.files = dataTransfer.files;
+    renderEditReviewSelectedImagePreviews();
+}
+
+function openEditReviewModal(button) {
+    const reviewId = button.getAttribute('data-review-id');
+    const rating = button.getAttribute('data-rating') || '5';
+    const comment = button.getAttribute('data-comment') || '';
+
+    document.getElementById('editReviewId').value = reviewId || '';
+    document.getElementById('editReviewComment').value = comment;
+    document.querySelectorAll('#reviewEditModal input[name="rating"]').forEach(input => {
+        input.checked = input.value === rating;
+    });
+
+    editReviewSelectedFiles = [];
+    const fileInput = document.getElementById('editReviewImages');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    renderEditReviewSelectedImagePreviews();
+
+    const modal = document.getElementById('reviewEditModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeReviewEditModal() {
+    const modal = document.getElementById('reviewEditModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    document.body.style.overflow = 'auto';
+}
 
 /**
  * Mở modal thêm vào giỏ
@@ -414,18 +728,31 @@ async function confirmAddToCart() {
     if (!currentModalFoodId) return;
 
     const quantity = parseInt(document.getElementById('modalQuantity').value) || 1;
-    const requests = [{ foodId: currentModalFoodId, quantity: quantity }];
+    const addonRequests = [];
 
     for (const addonId in selectedAddons) {
-        requests.push({ foodId: addonId, quantity: 1 });
+        addonRequests.push({ foodId: addonId, quantity: 1 });
     }
 
     let totalItemsAdded = 0;
     let failedCount = 0;
     let latestCartCount = null;
 
-    for (const request of requests) {
-        const result = await addToCartProductAsync(request.foodId, request.quantity);
+    const mainResult = await addToCartProductAsync(currentModalFoodId, quantity);
+    if (!mainResult || !mainResult.success) {
+        showToastMessage('Lỗi khi thêm món chính vào giỏ hàng', 'error');
+        closeAddToCartModal();
+        return;
+    }
+
+    totalItemsAdded += quantity;
+    latestCartCount = typeof mainResult.cartCount === 'number' ? mainResult.cartCount : latestCartCount;
+    updateHeaderCartCount(latestCartCount);
+
+    const parentCartItemId = mainResult.cartItemId;
+
+    for (const request of addonRequests) {
+        const result = await addToCartProductAsync(request.foodId, request.quantity, parentCartItemId);
         if (result && result.success) {
             totalItemsAdded += request.quantity;
             latestCartCount = typeof result.cartCount === 'number' ? result.cartCount : latestCartCount;
@@ -449,10 +776,13 @@ async function confirmAddToCart() {
 /**
  * Thêm một sản phẩm vào giỏ hàng (Async - trả về Promise)
  */
-function addToCartProductAsync(foodId, quantity = 1) {
+function addToCartProductAsync(foodId, quantity = 1, parentCartItemId = null) {
     const params = new URLSearchParams();
     params.append('foodId', foodId);
     params.append('quantity', quantity);
+    if (parentCartItemId !== null) {
+        params.append('parentCartItemId', parentCartItemId);
+    }
 
     return fetch('/cart/add', {
         method: 'POST',

@@ -147,10 +147,11 @@ CREATE TABLE cart_items (
     user_id BIGINT NOT NULL,
     food_id BIGINT NOT NULL,
     quantity INT NOT NULL CHECK (quantity > 0) DEFAULT 1,
+    parent_cart_item_id BIGINT NULL,
     created_at DATETIME2 DEFAULT GETDATE(),
     CONSTRAINT fk_cart_items_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_cart_items_food FOREIGN KEY (food_id) REFERENCES foods(id),
-    CONSTRAINT uq_cart_user_food UNIQUE (user_id, food_id)
+    CONSTRAINT fk_cart_items_parent FOREIGN KEY (parent_cart_item_id) REFERENCES cart_items(id)
 );
 
 -- Bảng food_recommendations (Gợi ý kèm theo khi đặt hàng)
@@ -178,6 +179,35 @@ CREATE TABLE food_images (
 );
 
 CREATE INDEX idx_food_images_food_id ON food_images(food_id);
+
+-- Bảng food_reviews (Đánh giá sản phẩm)
+CREATE TABLE food_reviews (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    food_id BIGINT NOT NULL,
+    order_id BIGINT NOT NULL,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment NVARCHAR(2000),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2,
+    CONSTRAINT fk_food_reviews_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_food_reviews_food FOREIGN KEY (food_id) REFERENCES foods(id),
+    CONSTRAINT fk_food_reviews_order FOREIGN KEY (order_id) REFERENCES orders(id),
+    CONSTRAINT uq_food_reviews_user_food UNIQUE (user_id, food_id)
+);
+
+CREATE INDEX idx_food_reviews_food_id ON food_reviews(food_id);
+CREATE INDEX idx_food_reviews_user_id ON food_reviews(user_id);
+
+-- Bảng food_review_images (Ảnh đánh giá)
+CREATE TABLE food_review_images (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    review_id BIGINT NOT NULL,
+    image_url NVARCHAR(1000) NOT NULL,
+    CONSTRAINT fk_food_review_images_review FOREIGN KEY (review_id) REFERENCES food_reviews(id)
+);
+
+CREATE INDEX idx_food_review_images_review_id ON food_review_images(review_id);
 
 
 
@@ -363,6 +393,55 @@ IF COL_LENGTH('users', 'longitude') IS NULL
     ALTER TABLE users ADD longitude FLOAT NULL;
 IF COL_LENGTH('foods', 'is_addon') IS NULL
     ALTER TABLE foods ADD is_addon BIT NOT NULL CONSTRAINT df_foods_is_addon DEFAULT 0;
+
+IF COL_LENGTH('cart_items', 'parent_cart_item_id') IS NULL
+    ALTER TABLE cart_items ADD parent_cart_item_id BIGINT NULL;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'fk_cart_items_parent'
+)
+    ALTER TABLE cart_items
+    ADD CONSTRAINT fk_cart_items_parent FOREIGN KEY (parent_cart_item_id) REFERENCES cart_items(id);
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.key_constraints
+    WHERE name = 'uq_cart_user_food'
+)
+    ALTER TABLE cart_items DROP CONSTRAINT uq_cart_user_food;
+
+IF OBJECT_ID('dbo.food_reviews', 'U') IS NULL
+BEGIN
+    CREATE TABLE food_reviews (
+        id BIGINT IDENTITY(1,1) PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        food_id BIGINT NOT NULL,
+        order_id BIGINT NOT NULL,
+        rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+        comment NVARCHAR(2000),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2,
+        CONSTRAINT fk_food_reviews_user FOREIGN KEY (user_id) REFERENCES users(id),
+        CONSTRAINT fk_food_reviews_food FOREIGN KEY (food_id) REFERENCES foods(id),
+        CONSTRAINT fk_food_reviews_order FOREIGN KEY (order_id) REFERENCES orders(id),
+        CONSTRAINT uq_food_reviews_user_food UNIQUE (user_id, food_id)
+    );
+    CREATE INDEX idx_food_reviews_food_id ON food_reviews(food_id);
+    CREATE INDEX idx_food_reviews_user_id ON food_reviews(user_id);
+END
+
+IF OBJECT_ID('dbo.food_review_images', 'U') IS NULL
+BEGIN
+    CREATE TABLE food_review_images (
+        id BIGINT IDENTITY(1,1) PRIMARY KEY,
+        review_id BIGINT NOT NULL,
+        image_url NVARCHAR(1000) NOT NULL,
+        CONSTRAINT fk_food_review_images_review FOREIGN KEY (review_id) REFERENCES food_reviews(id)
+    );
+    CREATE INDEX idx_food_review_images_review_id ON food_review_images(review_id);
+END
 
 -- ========== HOÀN THÀNH SETUP ==========
 PRINT N'✓ Đã tạo xong tất cả các bảng';

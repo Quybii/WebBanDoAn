@@ -20,6 +20,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByUserOrderByOrderDateDesc(User user);
 
+    @Query("SELECT o FROM Order o JOIN o.orderDetails od WHERE o.user = :user AND od.food.id = :foodId AND (UPPER(o.status) = 'COMPLETED' OR UPPER(o.paymentStatus) = 'COMPLETED') ORDER BY o.orderDate DESC")
+    List<Order> findCompletedOrdersContainingFood(@Param("user") User user, @Param("foodId") Long foodId);
+
         @Query(value = """
                         SELECT CAST(o.order_date AS date) AS report_date, COALESCE(SUM(o.total_amount), 0) AS revenue
                         FROM orders o

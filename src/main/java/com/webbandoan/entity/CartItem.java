@@ -35,6 +35,10 @@ public class CartItem {
     @JoinColumn(name = "food_id", nullable = false)
     private Food food;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_cart_item_id")
+    private CartItem parentCartItem;
+
     @Column(name = "quantity", nullable = false)
     private Integer quantity = 1;
 
@@ -51,6 +55,13 @@ public class CartItem {
         this.user = user;
         this.food = food;
         this.quantity = quantity;
+    }
+
+    public CartItem(User user, Food food, Integer quantity, CartItem parentCartItem) {
+        this.user = user;
+        this.food = food;
+        this.quantity = quantity;
+        this.parentCartItem = parentCartItem;
     }
 
     /** Thành tiền = đơn giá * số lượng (dùng cho hiển thị). */

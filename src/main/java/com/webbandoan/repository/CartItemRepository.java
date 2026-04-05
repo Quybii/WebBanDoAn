@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository: CartItem (giỏ hàng).
@@ -21,7 +20,11 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     List<CartItem> findByUserOrderByCreatedAtDesc(User user);
 
-    Optional<CartItem> findByUserAndFood(User user, Food food);
+    List<CartItem> findByUserAndParentCartItemOrderByCreatedAtDesc(User user, CartItem parentCartItem);
+
+    @Modifying
+    @Query("DELETE FROM CartItem c WHERE c.parentCartItem = :parentCartItem")
+    void deleteByParentCartItem(@Param("parentCartItem") CartItem parentCartItem);
 
     @Modifying
     @Query("DELETE FROM CartItem c WHERE c.user = :user")

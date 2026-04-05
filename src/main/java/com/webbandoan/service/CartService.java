@@ -24,20 +24,27 @@ public class CartService {
     private final FoodRepository foodRepository;
 
     @Transactional
-    public void addItem(User user, Long foodId, int quantity) {
-        if (quantity <= 0 || user == null || foodId == null) return;
+    public CartItem addItem(User user, Long foodId, int quantity) {
+        return addItem(user, foodId, quantity, null);
+    }
+
+    @Transactional
+    public CartItem addItem(User user, Long foodId, int quantity, Long parentCartItemId) {
+        if (quantity <= 0 || user == null || foodId == null) return null;
         
         Food food = foodRepository.findById(foodId).orElse(null);
-        if (food == null || !food.getIsAvailable()) return;
+        if (food == null || !Boolean.TRUE.equals(food.getIsAvailable())) return null;
 
-        CartItem item = cartItemRepository.findByUserAndFood(user, food).orElse(null);
-        if (item != null) {
-            item.setQuantity(item.getQuantity() + quantity);
-            cartItemRepository.save(item);
-        } else {
-            item = new CartItem(user, food, quantity);
-            cartItemRepository.save(item);
+        CartItem parentCartItem = null;
+        if (parentCartItemId != null) {
+            parentCartItem = cartItemRepository.findById(parentCartItemId).orElse(null);
+            if (parentCartItem != null && !parentCartItem.getUser().getId().equals(user.getId())) {
+                parentCartItem = null;
+            }
         }
+
+        CartItem item = new CartItem(user, food, quantity, parentCartItem);
+        return cartItemRepository.save(item);
     }
 
     @Transactional
@@ -47,6 +54,7 @@ public class CartService {
         CartItem item = cartItemRepository.findById(cartItemId).orElse(null);
         if (item == null || !item.getUser().getId().equals(user.getId())) return false;
         
+        cartItemRepository.deleteByParentCartItem(item);
         cartItemRepository.delete(item);
         return true;
     }

@@ -46,7 +46,7 @@ public class CartController {
         this.shopService = shopService;
     }
 
-    private record AddToCartRequest(Long foodId, Integer quantity) {
+    private record AddToCartRequest(Long foodId, Integer quantity, Long parentCartItemId) {
     }
 
     private User getCurrentUser() {
@@ -104,7 +104,11 @@ public class CartController {
             redirectAttributes.addFlashAttribute("errorMessage", "Hiện tại cửa hàng đóng cửa, không nhận đơn.");
             return "redirect:/foods/" + foodId;
         }
-        cartService.addItem(user, foodId, quantity);
+        CartItem createdItem = cartService.addItem(user, foodId, quantity);
+        if (createdItem == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể thêm món vào giỏ.");
+            return "redirect:/foods/" + foodId;
+        }
         redirectAttributes.addFlashAttribute("successMessage", "Đã thêm món vào giỏ.");
         if ("cart".equals(redirectTo)) {
             return "redirect:/cart";
@@ -115,7 +119,8 @@ public class CartController {
     @PostMapping(value = "/add", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<?> addToCartForm(
             @RequestParam Long foodId,
-            @RequestParam(defaultValue = "1") int quantity) {
+            @RequestParam(defaultValue = "1") int quantity,
+            @RequestParam(required = false) Long parentCartItemId) {
         try {
             User user = getCurrentUser();
             if (user == null) {
@@ -142,10 +147,17 @@ public class CartController {
                 ));
             }
 
-            cartService.addItem(user, foodId, quantity);
+            CartItem createdItem = cartService.addItem(user, foodId, quantity, parentCartItemId);
+            if (createdItem == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Không thể thêm vào giỏ"
+                ));
+            }
             int count = cartService.getCartItems(user).size();
             return ResponseEntity.ok(Map.of(
                 "success", true,
+                "cartItemId", createdItem != null ? createdItem.getId() : null,
                 "cartCount", count,
                 "message", "Đã thêm vào giỏ.",
                 "debug", "Added foodId=" + foodId + ", qty=" + quantity + " for user=" + user.getUsername()
@@ -197,11 +209,18 @@ public class CartController {
             }
 
             int quantity = (req.quantity() == null || req.quantity() <= 0) ? 1 : req.quantity();
-            cartService.addItem(user, req.foodId(), quantity);
+            CartItem createdItem = cartService.addItem(user, req.foodId(), quantity, req.parentCartItemId());
+            if (createdItem == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Không thể thêm vào giỏ"
+                ));
+            }
             int count = cartService.getCartItems(user).size();
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
+                "cartItemId", createdItem != null ? createdItem.getId() : null,
                 "cartCount", count,
                 "message", "Đã thêm vào giỏ.",
                 "debug", "Added foodId=" + req.foodId() + ", qty=" + quantity + " for user=" + user.getUsername()
