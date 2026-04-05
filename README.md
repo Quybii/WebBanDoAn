@@ -88,3 +88,15 @@ Sử dụng các tài khoản sau để test hệ thống:
 *   **Responsive:** Dự án được thiết kế theo hướng Mobile-First. Vui lòng mở Developer Tools (F12) và chọn chế độ thiết bị di động (iPhone/Pixel) để kiểm tra giao diện dạng Card Layout và Menu tối ưu cho Mobile.
 *   **JavaScript & AJAX:** Các tính năng trong Giỏ hàng (Thay đổi số lượng, Xóa món) sử dụng Fetch API kết hợp với Custom Confirm Modal, đảm bảo trải nghiệm liền mạch không cần reload trang.
 *   **Kiểm thử thủ công:** Đã vượt qua 100% các Test Case cơ bản (Luồng đặt hàng, Cập nhật trạng thái Admin, Bảo mật phân quyền).
+
+## ADD SETTING MOMO
+momo.momo-api-url=https://test-payment.momo.vn/v2/gateway/api/create
+momo.partner-code=MOMO
+momo.access-key=F8BBA842ECF85
+momo.secret-key=K951B6PE1waDMi640xX08PD3vg6EkVlz
+momo.request-type=captureWallet
+momo.order-type=momo_wallet
+momo.auto-capture=true
+momo.lang=vi
+momo.pay-order-return-url=http://localhost:8080/payment/momo-return
+momo.pay-order-notify-url=http://localhost:8080/payment/momo-callback
