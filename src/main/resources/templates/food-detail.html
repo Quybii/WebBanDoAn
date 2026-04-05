@@ -50,9 +50,19 @@
                 </div>
                 <p th:if="${food.description == null or food.description.isEmpty()}" class="food-detail-no-desc">Chưa có mô tả.</p>
 
-                <div class="food-detail-actions">
-                    <button type="button" class="btn btn-primary btn-add-cart-large btn-add-cart-ajax" th:attr="data-food-id=${food.id}">Thêm vào giỏ</button>
-                    <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua sắm</a>
+                <div class="food-detail-actions-wrapper">
+                    <div class="quantity-container">
+                        <span class="quantity-label">Số lượng:</span>
+                        <div class="quantity-control">
+                            <button type="button" class="qty-btn" onclick="decreaseQty()">-</button>
+                            <input type="number" id="food-quantity" class="qty-input" value="1" min="1" max="99" readonly>
+                            <button type="button" class="qty-btn" onclick="increaseQty()">+</button>
+                        </div>
+                    </div>
+                    <div class="food-detail-actions">
+                        <button type="button" id="btn-add-cart-detail" class="btn btn-primary btn-add-cart-large btn-add-cart-ajax" th:attr="data-food-id=${food.id}">Thêm vào giỏ</button>
+                        <a th:href="@{/foods}" class="btn btn-secondary">Tiếp tục mua sắm</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -230,6 +240,22 @@
             });
         }
     });
+    function decreaseQty() {
+        let qtyInput = document.getElementById('food-quantity');
+        let currentQty = parseInt(qtyInput.value);
+        if (currentQty > 1) {
+            qtyInput.value = currentQty - 1;
+        }
+    }
+
+    // Hàm tăng số lượng
+    function increaseQty() {
+        let qtyInput = document.getElementById('food-quantity');
+        let currentQty = parseInt(qtyInput.value);
+        if (currentQty < 99) { // Giới hạn tối đa 99 phần ăn
+            qtyInput.value = currentQty + 1;
+        }
+    }
 </script>
 
 </body>

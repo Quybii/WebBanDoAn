@@ -7,7 +7,14 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!btn) return;
         e.preventDefault();
         const foodId = btn.getAttribute('data-food-id');
-        const qty = btn.getAttribute('data-quantity') || 1;
+        let qty = 1;
+        const qtyInput = document.getElementById('food-quantity');
+        // Kiểm tra xem nút được bấm có phải là nút trong trang chi tiết không
+        if (qtyInput && btn.id === 'btn-add-cart-detail') {
+            qty = qtyInput.value; // Lấy số lượng thực tế từ ô input
+        } else {
+            qty = btn.getAttribute('data-quantity') || 1;
+        }
         addToCartAjax(foodId, qty, btn);
     });
 });

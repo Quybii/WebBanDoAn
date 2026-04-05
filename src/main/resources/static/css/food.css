@@ -519,3 +519,67 @@
     text-align: center;
     padding: 20px 0;
 }
+/* =====================================================
+   Khu vực Chọn số lượng & Nút giỏ hàng (food-detail.html)
+   ===================================================== */
+.food-detail-actions-wrapper {
+    margin-top: 25px;
+}
+
+.quantity-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.quantity-label {
+    font-weight: bold;
+    color: var(--secondary);
+    font-size: 1.1rem;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--white);
+}
+
+.qty-btn {
+    width: 40px;
+    height: 40px;
+    background: #f8f9fa;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--text);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.qty-btn:hover {
+    background: #e9ecef;
+    color: var(--primary);
+}
+
+.qty-input {
+    width: 50px;
+    height: 40px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-weight: bold;
+    font-size: 16px;
+    outline: none;
+    pointer-events: none; /* Khóa không cho gõ phím trực tiếp */
+    color: var(--secondary);
+}
+
+.food-detail-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
