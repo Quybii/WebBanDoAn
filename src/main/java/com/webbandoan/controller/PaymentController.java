@@ -53,14 +53,13 @@ public class PaymentController {
             return "redirect:/order-success";
         }
 
-        orderService.cancelMomoOrderAndRestoreCart(internalOrderId);
-
-        String failureMessage = "Thanh toán MoMo không thành công.";
+        String failureMessage = "Thanh toán MoMo chưa hoàn tất. Đơn hàng đã được ghi nhận và đang chờ xử lý thanh toán.";
         if (message != null && !message.isBlank()) {
             failureMessage = message;
         }
         redirectAttributes.addFlashAttribute("errorMessage", failureMessage);
-        return "redirect:/checkout";
+        redirectAttributes.addAttribute("orderId", internalOrderId);
+        return "redirect:/order-success";
     }
 
     @PostMapping(value = "/momo-callback", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.ALL_VALUE})
@@ -78,9 +77,6 @@ public class PaymentController {
 
         if (internalOrderId != null) {
             updatePaymentState(internalOrderId, transId, resultCode, message);
-            if (resultCode != null && resultCode != 0) {
-                orderService.cancelMomoOrderAndRestoreCart(internalOrderId);
-            }
         }
 
         Map<String, Object> response = new LinkedHashMap<>();

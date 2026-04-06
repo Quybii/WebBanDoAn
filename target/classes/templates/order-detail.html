@@ -35,6 +35,17 @@
                     <p><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span></p>
                     <p><strong>Địa chỉ giao hàng:</strong> <span th:text="${order.shippingAddress}">Địa chỉ</span></p>
                     <p><strong>Số điện thoại:</strong> <span th:text="${order.phone}">SĐT</span></p>
+                    <p th:if="${order.paymentMethod != null}">
+                        <strong>Phương thức thanh toán:</strong> <span th:text="${order.paymentMethod.name}">COD</span>
+                    </p>
+                    <p th:if="${order.paymentMethod != null and order.paymentMethod.code == 'MOMO'}">
+                        <strong>Trạng thái thanh toán MoMo:</strong>
+                        <span class="status-badge"
+                              th:classappend="${order.paymentStatus == 'COMPLETED' ? 'status-completed' : (order.paymentStatus == 'FAILED' ? 'status-cancelled' : 'status-pending')}"
+                              th:text="${order.paymentStatus == 'COMPLETED' ? 'Đã thanh toán' : (order.paymentStatus == 'FAILED' ? 'Chưa thanh toán / Hủy' : 'Đang chờ thanh toán')}">
+                            Đang chờ thanh toán
+                        </span>
+                    </p>
                     <p th:if="${order.note != null and !order.note.isEmpty()}">
                         <strong>Ghi chú:</strong> <span th:text="${order.note}">Ghi chú</span>
                     </p>

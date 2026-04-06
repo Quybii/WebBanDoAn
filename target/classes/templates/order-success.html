@@ -26,6 +26,9 @@
             <p class="order-success-id">
                 Trạng thái thanh toán: <strong th:text="${order.paymentStatus}">PENDING</strong>
             </p>
+            <p class="order-success-message" th:if="${order.paymentStatus != null and order.paymentStatus != 'COMPLETED'}">
+                Đơn hàng đã được ghi nhận, nhưng thanh toán MoMo chưa hoàn tất.
+            </p>
             <p class="order-success-total">
                 Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</strong>
             </p>

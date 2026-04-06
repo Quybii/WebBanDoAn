@@ -25,6 +25,7 @@
                         <th>Ngày đặt</th>
                         <th>Khách hàng</th>
                         <th>Tổng tiền</th>
+                        <th>Thanh toán</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
                     </tr>
@@ -35,6 +36,15 @@
                         <td th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</td>
                         <td th:text="${order.user.username}">user1</td>
                         <td th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
+                        <td>
+                            <span th:if="${order.paymentMethod != null and order.paymentMethod.code == 'MOMO'}"
+                                  class="status-badge"
+                                  th:classappend="${order.paymentStatus == 'COMPLETED' ? 'status-completed' : (order.paymentStatus == 'FAILED' ? 'status-cancelled' : 'status-pending')}"
+                                  th:text="${order.paymentStatus == 'COMPLETED' ? 'MoMo: Đã thanh toán' : (order.paymentStatus == 'FAILED' ? 'MoMo: Chưa thanh toán / Hủy' : 'MoMo: Đang chờ thanh toán')}">
+                                MoMo: Đang chờ thanh toán
+                            </span>
+                            <span th:if="${order.paymentMethod == null or order.paymentMethod.code != 'MOMO'}">COD</span>
+                        </td>
                         <td>
                             <span class="status-badge"
                                   th:classappend="${order.status == 'PENDING' ? 'status-pending' : (order.status == 'CONFIRMED' ? 'status-confirmed' : (order.status == 'DELIVERING' ? 'status-delivering' : (order.status == 'COMPLETED' ? 'status-completed' : 'status-cancelled')))}"

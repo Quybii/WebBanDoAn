@@ -33,6 +33,14 @@
                         <strong>Tổng tiền:</strong>
                         <span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span>
                     </p>
+                    <p class="order-card-payment" th:if="${order.paymentMethod != null and order.paymentMethod.code == 'MOMO'}">
+                        <strong>MoMo:</strong>
+                        <span class="status-badge"
+                              th:classappend="${order.paymentStatus == 'COMPLETED' ? 'status-completed' : (order.paymentStatus == 'FAILED' ? 'status-cancelled' : 'status-pending')}"
+                              th:text="${order.paymentStatus == 'COMPLETED' ? 'Đã thanh toán' : (order.paymentStatus == 'FAILED' ? 'Chưa thanh toán / Hủy' : 'Đang chờ thanh toán')}">
+                            Đang chờ thanh toán
+                        </span>
+                    </p>
                     <p class="order-card-address" th:text="'Địa chỉ: ' + ${order.shippingAddress}">Địa chỉ</p>
                     <p class="order-card-phone" th:text="'SĐT: ' + ${order.phone}">SĐT</p>
                 </div>
