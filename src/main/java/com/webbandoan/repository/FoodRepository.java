@@ -62,7 +62,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
                         FROM order_details od
                         INNER JOIN orders o ON o.id = od.order_id
                         INNER JOIN foods f ON f.id = od.food_id
-                        WHERE o.payment_status = 'COMPLETED'
+                        WHERE (UPPER(o.status) = 'COMPLETED' OR UPPER(o.payment_status) = 'COMPLETED')
                             AND o.order_date >= :startDate
                             AND o.order_date < :endDate
                         GROUP BY f.id, f.name

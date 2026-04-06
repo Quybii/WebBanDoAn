@@ -26,7 +26,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         @Query(value = """
                         SELECT CAST(o.order_date AS date) AS report_date, COALESCE(SUM(o.total_amount), 0) AS revenue
                         FROM orders o
-                        WHERE o.payment_status = 'COMPLETED'
+                        WHERE (UPPER(o.status) = 'COMPLETED' OR UPPER(o.payment_status) = 'COMPLETED')
                             AND o.order_date >= :startDate
                             AND o.order_date < :endDate
                         GROUP BY CAST(o.order_date AS date)
@@ -38,7 +38,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         @Query(value = """
                         SELECT COALESCE(SUM(o.total_amount), 0)
                         FROM orders o
-                        WHERE o.payment_status = 'COMPLETED'
+                        WHERE (UPPER(o.status) = 'COMPLETED' OR UPPER(o.payment_status) = 'COMPLETED')
                             AND o.order_date >= :startDate
                             AND o.order_date < :endDate
                         """, nativeQuery = true)
