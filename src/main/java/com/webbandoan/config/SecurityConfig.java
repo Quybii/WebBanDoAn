@@ -44,7 +44,8 @@ public class SecurityConfig {
                         "/js/**",
                         "/images/**",
                         "/payment/momo-callback",
-                        "/payment/momo-return"
+                        "/payment/momo-return",
+                        "/payment/vnpay-return"
                 ).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

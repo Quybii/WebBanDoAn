@@ -3,6 +3,7 @@ package com.webbandoan.controller;
 import com.webbandoan.entity.Order;
 import com.webbandoan.service.OrderService;
 import com.webbandoan.service.PaymentTransactionService;
+import com.webbandoan.service.VnpayPaymentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +26,13 @@ public class PaymentController {
 
     private final OrderService orderService;
     private final PaymentTransactionService paymentTransactionService;
+    private final VnpayPaymentService vnpayPaymentService;
 
-    public PaymentController(OrderService orderService, PaymentTransactionService paymentTransactionService) {
+    public PaymentController(OrderService orderService, PaymentTransactionService paymentTransactionService,
+                             VnpayPaymentService vnpayPaymentService) {
         this.orderService = orderService;
         this.paymentTransactionService = paymentTransactionService;
+        this.vnpayPaymentService = vnpayPaymentService;
     }
 
     @GetMapping("/momo-return")
@@ -82,6 +86,47 @@ public class PaymentController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("message", "OK");
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/vnpay-return")
+    public String vnpayReturn(@RequestParam Map<String, String> allParams, RedirectAttributes redirectAttributes) {
+        String txnRef = allParams.get("vnp_TxnRef");
+        Long internalOrderId = vnpayPaymentService.extractOrderId(txnRef);
+        if (internalOrderId == null) {
+            return "redirect:/";
+        }
+
+        if (!vnpayPaymentService.verifyReturnParams(allParams)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xác minh dữ liệu thanh toán VNPay.");
+            redirectAttributes.addAttribute("orderId", internalOrderId);
+            return "redirect:/order-success";
+        }
+
+        String responseCode = allParams.get("vnp_ResponseCode");
+        String transactionStatus = allParams.get("vnp_TransactionStatus");
+        String transactionNo = allParams.get("vnp_TransactionNo");
+        String message = allParams.get("vnp_Message");
+        boolean isSuccess = "00".equals(responseCode) && "00".equals(transactionStatus);
+
+        orderService.updatePaymentResult(
+                internalOrderId,
+                transactionNo,
+                isSuccess ? "COMPLETED" : "FAILED"
+        );
+
+        if (isSuccess) {
+            redirectAttributes.addAttribute("orderId", internalOrderId);
+            redirectAttributes.addFlashAttribute("successMessage", "Thanh toán VNPay đã được ghi nhận.");
+            return "redirect:/order-success";
+        }
+
+        String failureMessage = "Thanh toán VNPay chưa hoàn tất. Đơn hàng đã được ghi nhận và đang chờ xử lý thanh toán.";
+        if (message != null && !message.isBlank()) {
+            failureMessage = message;
+        }
+        redirectAttributes.addFlashAttribute("errorMessage", failureMessage);
+        redirectAttributes.addAttribute("orderId", internalOrderId);
+        return "redirect:/order-success";
     }
 
     private void updatePaymentState(Long orderId, String transId, Integer resultCode, String message) {

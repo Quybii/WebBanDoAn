@@ -29,6 +29,15 @@ public class PaymentMethodDataInitializer {
                 momo.setIsActive(true);
                 paymentMethodRepository.save(momo);
             }
+
+            if (paymentMethodRepository.findByCode("VNPAY").isEmpty()) {
+                PaymentMethod vnpay = new PaymentMethod();
+                vnpay.setCode("VNPAY");
+                vnpay.setName("Thanh toan qua VNPay");
+                vnpay.setDescription("Thanh toan qua cong VNPay sandbox");
+                vnpay.setIsActive(true);
+                paymentMethodRepository.save(vnpay);
+            }
         };
     }
 }

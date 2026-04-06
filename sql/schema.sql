@@ -168,7 +168,8 @@ INSERT INTO roles (name) VALUES (N'USER'), (N'ADMIN');
 -- BƯỚC 2: Tạo Payment Methods (phương thức thanh toán)
 INSERT INTO payment_methods (code, name, description, is_active) VALUES
     (N'COD', N'Thanh toán khi nhận hàng', N'Thanh toán tiền mặt khi nhận hàng', 1),
-    (N'MOMO', N'Chuyển khoản MoMo', N'Thanh toán qua ứng dụng MoMo', 1);
+    (N'MOMO', N'Chuyển khoản MoMo', N'Thanh toán qua ứng dụng MoMo', 1),
+    (N'VNPAY', N'Thanh toán qua VNPay', N'Thanh toán qua cổng VNPay', 1);
 
 -- BƯỚC 3: Tạo Users (người dùng)
 -- Password mẫu: 123456 (BCrypt hash - tạo bằng BCryptPasswordEncoder trong app nếu cần)

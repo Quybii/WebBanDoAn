@@ -8,7 +8,9 @@ import com.webbandoan.service.CartService;
 import com.webbandoan.service.OrderService;
 import com.webbandoan.service.MomoPaymentService;
 import com.webbandoan.service.PaymentMethodService;
+import com.webbandoan.service.VnpayPaymentService;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
@@ -41,14 +43,17 @@ public class OrderController {
     private final UserRepository userRepository;
     private final PaymentMethodService paymentMethodService;
     private final MomoPaymentService momoPaymentService;
+    private final VnpayPaymentService vnpayPaymentService;
 
     public OrderController(OrderService orderService, CartService cartService, UserRepository userRepository, 
-                          PaymentMethodService paymentMethodService, MomoPaymentService momoPaymentService) {
+                          PaymentMethodService paymentMethodService, MomoPaymentService momoPaymentService,
+                          VnpayPaymentService vnpayPaymentService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.userRepository = userRepository;
         this.paymentMethodService = paymentMethodService;
         this.momoPaymentService = momoPaymentService;
+        this.vnpayPaymentService = vnpayPaymentService;
     }
 
     private User getCurrentUser() {
@@ -92,6 +97,7 @@ public class OrderController {
             @RequestParam String phone,
             @RequestParam(required = false) String note,
             @RequestParam(required = false) Long paymentMethodId,
+            HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
         User user = getCurrentUser();
         if (user == null) return "redirect:/login";
@@ -141,6 +147,24 @@ public class OrderController {
                 orderService.cancelMomoOrderAndRestoreCart(order.getId());
                 redirectAttributes.addFlashAttribute("errorMessage", detailMessage);
                 return "redirect:/checkout";
+            }
+        }
+
+        boolean isVnpay = order.getPaymentMethod() != null && "VNPAY".equalsIgnoreCase(order.getPaymentMethod().getCode());
+        if (isVnpay) {
+            try {
+                String clientIp = request != null ? request.getRemoteAddr() : null;
+                String vnpayUrl = vnpayPaymentService.createPaymentUrl(order, clientIp);
+                return "redirect:" + vnpayUrl;
+            } catch (Exception ex) {
+                log.error("Failed to create VNPay payment URL for orderId={}", order.getId(), ex);
+                String detailMessage = ex.getMessage();
+                if (detailMessage == null || detailMessage.isBlank()) {
+                    detailMessage = "Không thể tạo link thanh toán VNPay.";
+                }
+                redirectAttributes.addFlashAttribute("errorMessage", detailMessage);
+                redirectAttributes.addAttribute("orderId", order.getId());
+                return "redirect:/order-success";
             }
         }
 
