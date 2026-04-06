@@ -20,6 +20,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     List<CartItem> findByUserOrderByCreatedAtDesc(User user);
 
+    java.util.Optional<CartItem> findByUserAndFoodAndParentCartItem(User user, Food food, CartItem parentCartItem);
+
     List<CartItem> findByUserAndParentCartItemOrderByCreatedAtDesc(User user, CartItem parentCartItem);
 
     @Modifying
@@ -29,4 +31,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @Modifying
     @Query("DELETE FROM CartItem c WHERE c.user = :user")
     void deleteByUser(@Param("user") User user);
+
+    @Modifying
+    @Query("DELETE FROM CartItem c WHERE c.food.id = :foodId")
+    void deleteByFoodId(@Param("foodId") Long foodId);
 }

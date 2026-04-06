@@ -153,7 +153,7 @@ public class AdminFoodController {
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         foodService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã xóa món.");
+        redirectAttributes.addFlashAttribute("successMessage", "Đã ẩn món khỏi hiển thị.");
         return "redirect:/admin/foods";
     }
 

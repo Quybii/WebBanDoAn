@@ -4,6 +4,11 @@ import com.webbandoan.entity.Food;
 import com.webbandoan.entity.FoodRecommendation;
 import com.webbandoan.repository.FoodRepository;
 import com.webbandoan.repository.FoodRecommendationRepository;
+import com.webbandoan.repository.CartItemRepository;
+import com.webbandoan.repository.FoodImageRepository;
+import com.webbandoan.repository.FoodReviewRepository;
+import com.webbandoan.repository.OrderDetailRepository;
+import com.webbandoan.service.FoodReviewImageService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,10 +26,26 @@ public class FoodService {
 
     private final FoodRepository foodRepository;
     private final FoodRecommendationRepository recommendationRepository;
+    private final FoodReviewRepository foodReviewRepository;
+    private final FoodImageRepository foodImageRepository;
+    private final CartItemRepository cartItemRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final FoodReviewImageService foodReviewImageService;
 
-    public FoodService(FoodRepository foodRepository, FoodRecommendationRepository recommendationRepository) {
+    public FoodService(FoodRepository foodRepository,
+                       FoodRecommendationRepository recommendationRepository,
+                       FoodReviewRepository foodReviewRepository,
+                       FoodImageRepository foodImageRepository,
+                       CartItemRepository cartItemRepository,
+                       OrderDetailRepository orderDetailRepository,
+                       FoodReviewImageService foodReviewImageService) {
         this.foodRepository = foodRepository;
         this.recommendationRepository = recommendationRepository;
+        this.foodReviewRepository = foodReviewRepository;
+        this.foodImageRepository = foodImageRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.orderDetailRepository = orderDetailRepository;
+        this.foodReviewImageService = foodReviewImageService;
     }
 
     /**
@@ -116,7 +137,19 @@ public class FoodService {
     @Transactional
     public void deleteById(Long id) {
         if (id != null) {
-            foodRepository.deleteById(id);
+            cartItemRepository.deleteByFoodId(id);
+            orderDetailRepository.deleteByFoodId(id);
+            recommendationRepository.deleteAllByFoodId(id);
+            Food food = foodRepository.findById(id).orElse(null);
+            if (food != null) {
+                foodReviewRepository.findByFoodOrderByCreatedAtDesc(food)
+                        .forEach(foodReviewImageService::deleteByReview);
+                foodReviewRepository.findByFoodOrderByCreatedAtDesc(food)
+                        .forEach(foodReviewRepository::delete);
+                foodImageRepository.findByFoodOrderByIdAsc(food)
+                        .forEach(foodImageRepository::delete);
+                foodRepository.delete(food);
+            }
         }
     }
 

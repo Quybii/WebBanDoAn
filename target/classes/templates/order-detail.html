@@ -49,6 +49,7 @@
                                 <th>Đơn giá</th>
                                 <th>Số lượng</th>
                                 <th>Thành tiền</th>
+                                <th>Đánh giá</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,11 +58,17 @@
                                 <td th:text="${#numbers.formatDecimal(detail.unitPrice, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
                                 <td th:text="${detail.quantity}">1</td>
                                 <td th:text="${#numbers.formatDecimal(detail.subtotal, 1, 'COMMA', 0, 'POINT') + ' ₫'}">35.000 ₫</td>
+                                <td>
+                                    <a th:if="${order.status == 'COMPLETED' and (detail.food == null or detail.food.isAddon != true)}"
+                                       th:href="@{|/foods/${detail.food.id}#foodReviewSection|}"
+                                       class="btn btn-primary btn-small">Đánh giá</a>
+                                    <span th:if="${order.status != 'COMPLETED' or (detail.food != null and detail.food.isAddon == true)}">-</span>
+                                </td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="3" class="order-total-label"><strong>Tổng cộng:</strong></td>
+                                <td colspan="4" class="order-total-label"><strong>Tổng cộng:</strong></td>
                                 <td class="order-total-amount" th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
                             </tr>
                         </tfoot>

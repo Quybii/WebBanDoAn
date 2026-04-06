@@ -43,6 +43,12 @@ public class CartService {
             }
         }
 
+        CartItem existingItem = cartItemRepository.findByUserAndFoodAndParentCartItem(user, food, parentCartItem).orElse(null);
+        if (existingItem != null) {
+            existingItem.setQuantity(existingItem.getQuantity() + quantity);
+            return cartItemRepository.save(existingItem);
+        }
+
         CartItem item = new CartItem(user, food, quantity, parentCartItem);
         return cartItemRepository.save(item);
     }

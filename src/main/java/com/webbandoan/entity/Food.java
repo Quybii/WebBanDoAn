@@ -57,6 +57,9 @@ public class Food {
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FoodImage> foodImages = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -109,5 +112,13 @@ public class Food {
 
     public void setCartItems(List<CartItem> cartItems) {
         this.cartItems = cartItems;
+    }
+
+    public List<FoodImage> getFoodImages() {
+        return foodImages;
+    }
+
+    public void setFoodImages(List<FoodImage> foodImages) {
+        this.foodImages = foodImages;
     }
 }

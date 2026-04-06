@@ -38,6 +38,9 @@
                 </div>
                 <div class="order-card-footer">
                     <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-primary">Xem chi tiết</a>
+                    <a th:if="${order.status == 'COMPLETED'}"
+                       th:href="@{/orders/{id}(id=${order.id})}"
+                       class="btn btn-secondary">Đánh giá sản phẩm</a>
                 </div>
             </div>
         </div>

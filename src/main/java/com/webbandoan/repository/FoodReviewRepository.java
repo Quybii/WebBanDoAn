@@ -25,4 +25,8 @@ public interface FoodReviewRepository extends JpaRepository<FoodReview, Long> {
 
     @Query("SELECT COALESCE(AVG(fr.rating), 0) FROM FoodReview fr WHERE fr.food = :food")
     Double getAverageRatingByFood(@Param("food") Food food);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM FoodReview fr WHERE fr.food.id = :foodId")
+    void deleteByFoodId(@Param("foodId") Long foodId);
 }
