@@ -236,34 +236,6 @@ public class CartController {
         }
     }
 
-    @PostMapping("/update")
-    public String updateQuantity(
-            @RequestParam Long cartItemId,
-            @RequestParam int quantity,
-            RedirectAttributes redirectAttributes) {
-        User user = getCurrentUser();
-        if (user == null) return "redirect:/login";
-
-        cartService.updateQuantity(user, cartItemId, quantity);
-        redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật giỏ hàng.");
-        return "redirect:/cart";
-    }
-
-    @PostMapping("/remove/{id}")
-    public String removeItem(
-            @PathVariable Long id,
-            RedirectAttributes redirectAttributes) {
-        User user = getCurrentUser();
-        if (user == null) return "redirect:/login";
-
-        if (cartService.removeItem(user, id)) {
-            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa món khỏi giỏ.");
-        }
-        return "redirect:/cart";
-    }
-
-    // ===== API Endpoints for AJAX =====
-    
     @PostMapping(value = "/api/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> apiUpdateQuantity(@RequestBody Map<String, Object> request) {
         try {
